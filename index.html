@@ -33,7 +33,11 @@
           <input id="file" type="file" accept="video/*" />
 
           <label class="tiny">2) Clip length (fixed for v1)</label>
-          <select id="length">
+          <label class="tiny" style="display:block;margin-top:10px">3) Cut mode</label>
+<select id="mode">
+  <option value="fast" selected>Fast (recommended)</option>
+  <option value="accurate">Accurate (slower, more reliable)</option>
+</select>
   <option value="15">15 seconds</option>
   <option value="30">30 seconds</option>
   <option value="60">60 seconds</option>
@@ -71,7 +75,12 @@
   </div>
 
   <!-- ffmpeg.wasm (browser video processing) -->
-  <script type="module">
+  <script type="module"// Remove old outputs so downloads don’t mix runs
+for (const f of ffmpeg.FS("readdir", "/")) {
+  if (f.startsWith("out_") && f.endsWith(".mp4")) {
+    try { ffmpeg.FS("unlink", f); } catch {}
+  }
+}>
     import { createFFmpeg, fetchFile } from "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js";
 
     const fileEl = document.getElementById("file");
@@ -148,15 +157,38 @@ const segmentTime = Math.min(chosen, MAX_SEGMENT_SECONDS); // hard cap at 15 min
         setStatus("Status: splitting video into 5-minute clips...");
         // Fast path: stream copy (no re-encode). Some sources may not cut exactly on the second.
         // Output: out_000.mp4, out_001.mp4, ...
-        await ffmpeg.run(
-          "-i", inputName,
-          "-c", "copy",
-          "-map", "0",
-          "-f", "segment",
-          "-segment_time", String(segmentTime),
-          "-reset_timestamps", "1",
-          "out_%03d.mp4"
-        );
+        const modeEl = document.getElementById("mode");
+const mode = modeEl?.value || "fast";
+
+if (mode === "fast") {
+  // Very fast (no re-encode). May cut slightly off exact seconds on some files.
+  await ffmpeg.run(
+    "-i", inputName,
+    "-c", "copy",
+    "-map", "0",
+    "-f", "segment",
+    "-segment_time", String(segmentTime),
+    "-reset_timestamps", "1",
+    "out_%03d.mp4"
+  );
+} else {
+  // Accurate (re-encode). Slower, but cuts more reliably at the chosen length.
+  // Keeps files reasonably small for social media.
+  await ffmpeg.run(
+    "-i", inputName,
+    "-map", "0:v:0?",
+    "-map", "0:a:0?",
+    "-c:v", "libx264",
+    "-preset", "veryfast",
+    "-crf", "28",
+    "-c:a", "aac",
+    "-b:a", "128k",
+    "-f", "segment",
+    "-segment_time", String(segmentTime),
+    "-reset_timestamps", "1",
+    "out_%03d.mp4"
+  );
+    }
 
         setStatus("Status: preparing downloads...");
         const files = ffmpeg.FS("readdir", "/").filter(f => f.startsWith("out_") && f.endsWith(".mp4"));
