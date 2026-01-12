@@ -33,8 +33,12 @@
           <input id="file" type="file" accept="video/*" />
 
           <label class="tiny">2) Clip length (fixed for v1)</label>
-          <select id="length" disabled>
-            <option value="300" selected>5 minutes per clip</option>
+          <select id="length">
+  <option value="15">15 seconds</option>
+  <option value="30">30 seconds</option>
+  <option value="60">60 seconds</option>
+  <option value="300" selected>5 minutes</option>
+  <option value="900">15 minutes (max)</option>
           </select>
 
           <button id="start" disabled>Split video into clips</button>
@@ -75,7 +79,7 @@
     const statusEl = document.getElementById("status");
     const downloadsEl = document.getElementById("downloads");
 
-    const SEGMENT_SECONDS = 300; // 5 minutes
+    const DEFAULT_SECONDS = 300; // 5 minutes default
     const MAX_SEGMENT_SECONDS = 900; // hard max 15 min (policy)
 
     let selectedFile = null;
@@ -118,7 +122,9 @@
       clearDownloads();
       startBtn.disabled = true;
 
-      const segmentTime = Math.min(SEGMENT_SECONDS, MAX_SEGMENT_SECONDS);
+    const lengthEl = document.getElementById("length");
+const chosen = parseInt(lengthEl.value, 10) || DEFAULT_SECONDS;
+const segmentTime = Math.min(chosen, MAX_SEGMENT_SECONDS); // hard cap at 15 minutes
 
       setStatus("Status: loading video engine (first time may take a moment)...");
       const ffmpeg = createFFmpeg({
