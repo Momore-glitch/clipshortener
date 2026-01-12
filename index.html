@@ -3,79 +3,62 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ClipShortener — Turn Long Videos Into Short Clips (Free)</title>
-  <meta name="description" content="Paste a video transcript or YouTube transcript. Get clip timestamps, short scripts, hooks, and captions. Download lightweight outputs." />
+  <title>ClipShortener</title>
   <style>
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0b0f17;color:#e5e7eb}
-    .wrap{width:min(900px,92vw);margin:0 auto;padding:28px 0}
-    .card{border:1px solid #243042;border-radius:16px;padding:16px;background:rgba(255,255,255,.03)}
-    h1{margin:0 0 8px;font-size:28px}
-    p{margin:8px 0;color:#9ca3af;line-height:1.4}
-    textarea,input{width:100%;border-radius:12px;border:1px solid #243042;background:rgba(0,0,0,.25);color:#e5e7eb;padding:10px;outline:none}
-    textarea{min-height:180px;resize:vertical}
-    .row{display:grid;grid-template-columns:1fr;gap:10px}
-    @media(min-width:720px){.row{grid-template-columns:1fr 1fr}}
-    button{border:0;border-radius:12px;padding:10px 12px;font-weight:700;cursor:pointer}
-    .btn{background:#e5e7eb;color:#0b0f17}
-    .ghost{background:transparent;border:1px solid #243042;color:#e5e7eb}
-    .small{font-size:12px;color:#9ca3af}
-    .out{white-space:pre-wrap;background:rgba(0,0,0,.25);border:1px solid #243042;border-radius:12px;padding:10px;margin-top:10px}
-    a{color:#e5e7eb}
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #0b0f17;
+      color: #e5e7eb;
+    }
+    .wrap {
+      max-width: 700px;
+      margin: auto;
+      padding: 24px;
+    }
+    h1 { margin-bottom: 6px; }
+    p { color: #9ca3af; }
+    input, select, button {
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+    }
+    button {
+      background: #e5e7eb;
+      color: #0b0f17;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .box {
+      margin-top: 16px;
+      padding: 12px;
+      border: 1px dashed #243042;
+      border-radius: 10px;
+      color: #9ca3af;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="card">
-      <h1>ClipShortener</h1>
-      <p>Paste a video transcript (or YouTube transcript) and get short, meaningful clip chunks up to <b>15 minutes max</b>, plus hooks, captions, and download-ready text.</p>
+    <h1>ClipShortener</h1>
+    <p>Upload a video. Split it into 5-minute clips. Download and post.</p>
 
-      <div class="row">
-        <div>
-          <p class="small">Transcript input (for now)</p>
-          <textarea id="t" placeholder="Paste transcript here..."></textarea>
-        </div>
-        <div>
-          <p class="small">Your email (optional waitlist)</p>
-          <input id="email" placeholder="you@example.com (optional)" />
-          <p class="small">This is a simple MVP page. Next we add the clip generator + downloads.</p>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-            <button class="btn" id="demo">Generate demo output</button>
-            <button class="ghost" id="copy">Copy output</button>
-          </div>
-          <div class="out" id="o">Output will appear here.</div>
-        </div>
-      </div>
+    <input type="file" accept="video/*" />
 
-      <p class="small" style="margin-top:14px">
-        Monetisation will be added after the tool works: “Free limited” + “Pro downloads”. You (creator) will have unlimited access via a private creator key.
-      </p>
+    <select>
+      <option selected>5 minutes per clip</option>
+    </select>
+
+    <button disabled>Split video (coming next)</button>
+
+    <div class="box">
+      This is Step 2.<br>
+      Next step: real video splitting happens in your browser.
     </div>
   </div>
-
-<script>
-  const t = document.getElementById('t');
-  const o = document.getElementById('o');
-
-  document.getElementById('demo').onclick = () => {
-    const text = (t.value || "").trim();
-    if (text.length < 120) {
-      o.textContent = "Paste at least a few paragraphs of transcript for meaningful results.";
-      return;
-    }
-    o.textContent =
-`DEMO (MVP placeholder)
-- Clip 1 (0:00–0:30): Hook + Context
-- Clip 2 (0:30–1:15): Main Point
-- Clip 3 (1:15–2:00): Proof/Example
-- Clip 4 (2:00–2:30): CTA
-
-Next step: we will replace this demo with real transcript chunking + downloads (TXT/MD).`;
-  };
-
-  document.getElementById('copy').onclick = async () => {
-    try { await navigator.clipboard.writeText(o.textContent); }
-    catch { /* ignore */ }
-  };
-</script>
 </body>
-                                                                                                                         </html>
+</html>
