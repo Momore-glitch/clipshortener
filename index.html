@@ -3,62 +3,177 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ClipShortener</title>
+  <title>ClipShortener — Video Splitter</title>
   <style>
-    body {
-      margin: 0;
-      font-family: system-ui, sans-serif;
-      background: #0b0f17;
-      color: #e5e7eb;
-    }
-    .wrap {
-      max-width: 700px;
-      margin: auto;
-      padding: 24px;
-    }
-    h1 { margin-bottom: 6px; }
-    p { color: #9ca3af; }
-    input, select, button {
-      width: 100%;
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      font-size: 16px;
-    }
-    button {
-      background: #e5e7eb;
-      color: #0b0f17;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .box {
-      margin-top: 16px;
-      padding: 12px;
-      border: 1px dashed #243042;
-      border-radius: 10px;
-      color: #9ca3af;
-      font-size: 14px;
-    }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0b0f17;color:#e5e7eb}
+    .wrap{width:min(900px,92vw);margin:0 auto;padding:22px 0}
+    .card{border:1px solid #243042;border-radius:16px;padding:16px;background:rgba(255,255,255,.03)}
+    h1{margin:0 0 6px;font-size:26px}
+    p{margin:8px 0;color:#9ca3af;line-height:1.4}
+    input,select,button{width:100%;margin-top:12px;padding:12px;border-radius:12px;border:1px solid #243042;background:rgba(0,0,0,.25);color:#e5e7eb;font-size:16px}
+    button{background:#e5e7eb;color:#0b0f17;font-weight:800;cursor:pointer;border:none}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .row{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:860px){.row{grid-template-columns:1fr 1fr;align-items:start}}
+    .box{margin-top:12px;padding:12px;border:1px dashed #243042;border-radius:12px;color:#9ca3af;font-size:13px}
+    .log{white-space:pre-wrap;background:rgba(0,0,0,.25);border:1px solid #243042;border-radius:12px;padding:10px;margin-top:12px;color:#9ca3af;font-size:13px}
+    .list a{display:block;margin-top:10px;padding:10px;border:1px solid #243042;border-radius:12px;color:#e5e7eb;text-decoration:none;background:rgba(0,0,0,.22)}
+    .tiny{font-size:12px;color:#9ca3af}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>ClipShortener</h1>
-    <p>Upload a video. Split it into 5-minute clips. Download and post.</p>
+    <div class="card">
+      <h1>ClipShortener</h1>
+      <p><b>Video-only</b>: upload a video → split into <b>5-minute clips</b> → download the clips.</p>
 
-    <input type="file" accept="video/*" />
+      <div class="row">
+        <div>
+          <label class="tiny">1) Upload video file (MP4 recommended)</label>
+          <input id="file" type="file" accept="video/*" />
 
-    <select>
-      <option selected>5 minutes per clip</option>
-    </select>
+          <label class="tiny">2) Clip length (fixed for v1)</label>
+          <select id="length" disabled>
+            <option value="300" selected>5 minutes per clip</option>
+          </select>
 
-    <button disabled>Split video (coming next)</button>
+          <button id="start" disabled>Split video into clips</button>
 
-    <div class="box">
-      This is Step 2.<br>
-      Next step: real video splitting happens in your browser.
+          <div class="box">
+            Notes (kept simple):
+            <ul style="margin:8px 0 0 18px">
+              <li>Processing happens on the user’s device (free).</li>
+              <li>First load downloads the splitter engine once (can take a moment).</li>
+              <li>Clips may cut slightly off exact seconds if the video isn’t keyframe-aligned (we can improve later).</li>
+            </ul>
+          </div>
+
+          <div id="status" class="log">Status: waiting for a video file.</div>
+        </div>
+
+        <div>
+          <label class="tiny">3) Download your clips</label>
+          <div id="downloads" class="list"></div>
+          <div class="box">
+            If you see no links after processing, tell me what your Status box says and I’ll fix it.
+          </div>
+        </div>
+      </div>
+
+      <p class="tiny" style="margin-top:12px">
+        Monetisation later: public limits + Pro features. You will keep unlimited creator access.
+      </p>
     </div>
   </div>
+
+  <!-- ffmpeg.wasm (browser video processing) -->
+  <script type="module">
+    import { createFFmpeg, fetchFile } from "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js";
+
+    const fileEl = document.getElementById("file");
+    const startBtn = document.getElementById("start");
+    const statusEl = document.getElementById("status");
+    const downloadsEl = document.getElementById("downloads");
+
+    const SEGMENT_SECONDS = 300; // 5 minutes
+    const MAX_SEGMENT_SECONDS = 900; // hard max 15 min (policy)
+
+    let selectedFile = null;
+
+    function setStatus(msg) {
+      statusEl.textContent = msg;
+    }
+
+    function clearDownloads() {
+      downloadsEl.innerHTML = "";
+    }
+
+    function addDownloadLink(filename, data) {
+      const blob = new Blob([data.buffer], { type: "video/mp4" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.textContent = `Download ${filename}`;
+      downloadsEl.appendChild(a);
+    }
+
+    fileEl.addEventListener("change", () => {
+      selectedFile = fileEl.files?.[0] || null;
+      clearDownloads();
+
+      if (!selectedFile) {
+        startBtn.disabled = true;
+        setStatus("Status: waiting for a video file.");
+        return;
+      }
+
+      startBtn.disabled = false;
+      setStatus(`Status: ready. Selected: ${selectedFile.name} (${Math.round(selectedFile.size/1024/1024)} MB)`);
+    });
+
+    startBtn.addEventListener("click", async () => {
+      if (!selectedFile) return;
+
+      clearDownloads();
+      startBtn.disabled = true;
+
+      const segmentTime = Math.min(SEGMENT_SECONDS, MAX_SEGMENT_SECONDS);
+
+      setStatus("Status: loading video engine (first time may take a moment)...");
+      const ffmpeg = createFFmpeg({
+        log: false,
+        corePath: "https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js"
+      });
+
+      try {
+        if (!ffmpeg.isLoaded()) await ffmpeg.load();
+      } catch (e) {
+        setStatus("Error loading engine. Try reloading the page and using a smaller video.");
+        startBtn.disabled = false;
+        return;
+      }
+
+      try {
+        setStatus("Status: reading video file...");
+        const inputName = "input.mp4";
+        ffmpeg.FS("writeFile", inputName, await fetchFile(selectedFile));
+
+        setStatus("Status: splitting video into 5-minute clips...");
+        // Fast path: stream copy (no re-encode). Some sources may not cut exactly on the second.
+        // Output: out_000.mp4, out_001.mp4, ...
+        await ffmpeg.run(
+          "-i", inputName,
+          "-c", "copy",
+          "-map", "0",
+          "-f", "segment",
+          "-segment_time", String(segmentTime),
+          "-reset_timestamps", "1",
+          "out_%03d.mp4"
+        );
+
+        setStatus("Status: preparing downloads...");
+        const files = ffmpeg.FS("readdir", "/").filter(f => f.startsWith("out_") && f.endsWith(".mp4"));
+
+        if (!files.length) {
+          setStatus("No clips were generated. Try a different video format (MP4) or a smaller file.");
+          startBtn.disabled = false;
+          return;
+        }
+
+        // Create download links
+        for (const f of files) {
+          const data = ffmpeg.FS("readFile", f);
+          addDownloadLink(f, data);
+        }
+
+        setStatus(`Done. Generated ${files.length} clips.`);
+      } catch (e) {
+        setStatus("Error during splitting. Try an MP4 video that is smaller/shorter. If it still fails, tell me this message and your video type.");
+      } finally {
+        startBtn.disabled = false;
+      }
+    });
+  </script>
 </body>
-</html>
+  </html>
