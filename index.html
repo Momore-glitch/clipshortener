@@ -62,6 +62,7 @@
         <div>
           <label class="tiny">3) Download your clips</label>
           <div id="downloads" class="list"></div>
+<button id="downloadZip" disabled style="margin-top:12px">Download all as .zip</button>
           <div class="box">
             If you see no links after processing, tell me what your Status box says and I’ll fix it.
           </div>
@@ -75,7 +76,9 @@
   </div>
 
   <!-- ffmpeg.wasm (browser video processing) -->
-  <script type="module"// Remove old outputs so downloads don’t mix runs
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script  const downloadZipBtn = document.getElementById("downloadZip");
+let lastOutputs = []; // { name, data }type="module"// Remove old outputs so downloads don’t mix runs
 for (const f of ffmpeg.FS("readdir", "/")) {
   if (f.startsWith("out_") && f.endsWith(".mp4")) {
     try { ffmpeg.FS("unlink", f); } catch {}
@@ -98,7 +101,9 @@ for (const f of ffmpeg.FS("readdir", "/")) {
     }
 
     function clearDownloads() {
-      downloadsEl.innerHTML = "";
+  downloadsEl.innerHTML = "";
+  lastOutputs = [];
+  if (downloadZipBtn) downloadZipBtn.disabled = true;
     }
 
     function addDownloadLink(filename, data) {
@@ -200,16 +205,53 @@ if (mode === "fast") {
         }
 
         // Create download links
-        for (const f of files) {
-          const data = ffmpeg.FS("readFile", f);
-          addDownloadLink(f, data);
-        }
+        // Create nicer base name
+const baseName = (selectedFile.name || "video").replace(/\.[^/.]+$/, "").replace(/[^a-z0-9-_ ]/gi, "").trim().replace(/\s+/g, "_");
+
+for (let i = 0; i < files.length; i++) {
+  const f = files[i];
+  const data = ffmpeg.FS("readFile", f);
+
+  const niceName = `${baseName}_clip_${String(i+1).padStart(2,"0")}.mp4`;
+  lastOutputs.push({ name: niceName, data });
+
+  addDownloadLink(niceName, data);
+}
+
+if (downloadZipBtn) downloadZipBtn.disabled = false;
 
         setStatus(`Done. Generated ${files.length} clips.`);
       } catch (e) {
         setStatus("Error during splitting. Try an MP4 video that is smaller/shorter. If it still fails, tell me this message and your video type.");
       } finally {
-        startBtn.disabled = false;
+        startBtn.disabled = false; downloadZipBtn?.addEventListener("click", async () => {
+  if (!lastOutputs.length) return;
+
+  setStatus("Status: creating ZIP (this can take a moment)...");
+  downloadZipBtn.disabled = true;
+
+  try {
+    const zip = new window.JSZip();
+    for (const f of lastOutputs) {
+      zip.file(f.name, f.data);
+    }
+    const blob = await zip.generateAsync({ type: "blob" });
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "clipshortener_clips.zip";
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(a.href);
+    a.remove();
+
+    setStatus(`Done. ZIP downloaded with ${lastOutputs.length} clips.`);
+  } catch (e) {
+    setStatus("ZIP failed. Try downloading clips individually or use a shorter video.");
+  } finally {
+    downloadZipBtn.disabled = false;
+  }
+});
       }
     });
   </script>
