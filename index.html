@@ -35,6 +35,12 @@
           <label class="tiny">2) Clip length (fixed for v1)</label>
           <label class="tiny" style="display:block;margin-top:10px">3) Cut mode</label>
 <select id="mode">
+<label class="tiny" style="display:block;margin-top:10px">4) Quality</label>
+<select id="quality">
+  <option value="social">Social (smallest)</option>
+  <option value="balanced" selected>Balanced (recommended)</option>
+  <option value="high">High (best quality)</option>
+</select>
   <option value="fast" selected>Fast (recommended)</option>
   <option value="accurate">Accurate (slower, more reliable)</option>
 </select>
@@ -165,6 +171,23 @@ const segmentTime = Math.min(chosen, MAX_SEGMENT_SECONDS); // hard cap at 15 min
         const modeEl = document.getElementById("mode");
 const mode = modeEl?.value || "fast";
 
+    const qualityEl = document.getElementById("quality");
+const quality = qualityEl?.value || "balanced";
+
+let crf = 28;       // lower = better quality, larger files
+let scale = "1280:-2"; // 720p-ish by default (keeps aspect ratio)
+let audioBitrate = "96k";
+
+if (quality === "social") {
+  crf = 30;
+  scale = "854:-2";      // ~480p
+  audioBitrate = "64k";
+} else if (quality === "high") {
+  crf = 24;
+  scale = "1920:-2";     // up to 1080p (if input allows)
+  audioBitrate = "128k";
+    }
+
 if (mode === "fast") {
   // Very fast (no re-encode). May cut slightly off exact seconds on some files.
   await ffmpeg.run(
@@ -179,21 +202,7 @@ if (mode === "fast") {
 } else {
   // Accurate (re-encode). Slower, but cuts more reliably at the chosen length.
   // Keeps files reasonably small for social media.
-  await ffmpeg.run(
-    "-i", inputName,
-    "-map", "0:v:0?",
-    "-map", "0:a:0?",
-    "-c:v", "libx264",
-    "-preset", "veryfast",
-    "-crf", "28",
-    "-c:a", "aac",
-    "-b:a", "128k",
-    "-f", "segment",
-    "-segment_time", String(segmentTime),
-    "-reset_timestamps", "1",
-    "out_%03d.mp4"
-  );
-    }
+  
 
         setStatus("Status: preparing downloads...");
         const files = ffmpeg.FS("readdir", "/").filter(f => f.startsWith("out_") && f.endsWith(".mp4"));
@@ -206,7 +215,22 @@ if (mode === "fast") {
 
         // Create download links
         // Create nicer base name
-const baseName = (selectedFile.name || "video").replace(/\.[^/.]+$/, "").replace(/[^a-z0-9-_ ]/gi, "").trim().replace(/\s+/g, "_");
+const baseName = (selectedFile.name || "video").replace(/\.[^/.]+$/, "").replace(/[^a-z0-9-_ ]/gi,await ffmpeg.run(
+  "-i", inputName,
+  "-map", "0:v:0?",
+  "-map", "0:a:0?",
+  "-vf", `scale=${scale}`,
+  "-c:v", "libx264",
+  "-preset", "veryfast",
+  "-crf", String(crf),
+  "-c:a", "aac",
+  "-b:a", audioBitrate,
+  "-movflags", "+faststart",
+  "-f", "segment",
+  "-segment_time", String(segmentTime),
+  "-reset_timestamps", "1",
+  "out_%03d.mp4"
+); "").trim().replace(/\s+/g, "_");
 
 for (let i = 0; i < files.length; i++) {
   const f = files[i];
