@@ -1,318 +1,174 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ClipShortener — Video Splitter</title>
-  <style>
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0b0f17;color:#e5e7eb}
-    .wrap{width:min(900px,92vw);margin:0 auto;padding:22px 0}
-    .card{border:1px solid #243042;border-radius:16px;padding:16px;background:rgba(255,255,255,.03)}
-    h1{margin:0 0 6px;font-size:26px}
-    p{margin:8px 0;color:#9ca3af;line-height:1.4}
-    input,select,button{width:100%;margin-top:12px;padding:12px;border-radius:12px;border:1px solid #243042;background:rgba(0,0,0,.25);color:#e5e7eb;font-size:16px}
-    button{background:#e5e7eb;color:#0b0f17;font-weight:800;cursor:pointer;border:none}
-    button:disabled{opacity:.6;cursor:not-allowed}
-    .row{display:grid;grid-template-columns:1fr;gap:12px}
-    @media(min-width:860px){.row{grid-template-columns:1fr 1fr;align-items:start}}
-    .box{margin-top:12px;padding:12px;border:1px dashed #243042;border-radius:12px;color:#9ca3af;font-size:13px}
-    .log{white-space:pre-wrap;background:rgba(0,0,0,.25);border:1px solid #243042;border-radius:12px;padding:10px;margin-top:12px;color:#9ca3af;font-size:13px}
-    .list a{display:block;margin-top:10px;padding:10px;border:1px solid #243042;border-radius:12px;color:#e5e7eb;text-decoration:none;background:rgba(0,0,0,.22)}
-    .tiny{font-size:12px;color:#9ca3af}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClipShortener — Social Video Splitter</title>
+
+<style>
+body{margin:0;font-family:system-ui;background:#0b0f17;color:#e5e7eb}
+.wrap{max-width:900px;margin:auto;padding:20px}
+.card{border:1px solid #243042;border-radius:16px;padding:16px;background:rgba(255,255,255,.03)}
+h1{margin:0 0 6px}
+p{color:#9ca3af}
+label{font-size:12px;color:#9ca3af;margin-top:10px;display:block}
+input,select,button{width:100%;margin-top:6px;padding:12px;border-radius:12px;border:1px solid #243042;background:rgba(0,0,0,.25);color:#e5e7eb}
+button{background:#e5e7eb;color:#0b0f17;font-weight:800;border:none;cursor:pointer}
+button:disabled{opacity:.5}
+.row{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:800px){.row{grid-template-columns:1fr 1fr}}
+.log{white-space:pre-wrap;background:rgba(0,0,0,.25);border:1px solid #243042;border-radius:12px;padding:10px;font-size:13px;color:#9ca3af}
+.list a{display:block;margin-top:8px;padding:10px;border:1px solid #243042;border-radius:12px;text-decoration:none;color:#e5e7eb}
+.small{font-size:12px;color:#9ca3af}
+</style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>ClipShortener</h1>
-      <p><b>Video-only</b>: upload a video → split into <b>5-minute clips</b> → download the clips.</p>
+<div class="wrap">
+<div class="card">
+<h1>ClipShortener</h1>
+<p>Upload a video → split into social-ready clips → download.</p>
 
-      <div class="row">
-        <div>
-          <label class="tiny">1) Upload video file (MP4 recommended)</label>
-          <input id="file" type="file" accept="video/*" />
+<div class="row">
+<div>
+<label>1) Upload video</label>
+<input id="file" type="file" accept="video/*">
 
-          <label class="tiny">2) Clip length (fixed for v1)</label>
-          <label class="tiny" style="display:block;margin-top:10px">3) Cut mode</label>
+<label>2) Clip length</label>
+<select id="length">
+<option value="15">15 seconds</option>
+<option value="30">30 seconds</option>
+<option value="60" selected>60 seconds</option>
+<option value="300">5 minutes</option>
+<option value="900">15 minutes (max)</option>
+</select>
+
+<label>3) Cut mode</label>
 <select id="mode">
-<label class="tiny" style="display:block;margin-top:10px">4) Quality</label>
+<option value="fast">Fast</option>
+<option value="accurate" selected>Accurate (recommended)</option>
+</select>
+
+<label>4) Quality</label>
 <select id="quality">
-  <label class="tiny" style="display:block;margin-top:10px">5) Format</label>
+<option value="social">Social (smallest)</option>
+<option value="balanced" selected>Balanced</option>
+<option value="high">High</option>
+</select>
+
+<label>5) Format</label>
 <select id="format">
-  <option value="auto" selected>Auto (keep original)</option>
-  <option value="vertical">Vertical 9:16 (Reels/TikTok)</option>
-  <option value="horizontal">Horizontal 16:9 (YouTube)</option>
+<option value="auto">Auto</option>
+<option value="vertical" selected>Vertical 9:16</option>
+<option value="horizontal">Horizontal 16:9</option>
 </select>
-  <option value="social">Social (smallest)</option>
-  <option value="balanced" selected>Balanced (recommended)</option>
-  <option value="high">High (best quality)</option>
-</select>
-  <option value="fast" selected>Fast (recommended)</option>
-  <option value="accurate">Accurate (slower, more reliable)</option>
-</select>
-  <select id="length">
-  <option value="15">15 seconds</option>
-  <option value="30">30 seconds</option>
-  <option value="60">60 seconds</option>
-  <option value="300" selected>5 minutes</option>
-  <option value="900">15 minutes (max)</option>
-          </select>
 
-          <button id="start" disabled>Split video into clips</button>
+<button id="start" disabled>Split video</button>
 
-          <div class="box">
-            Notes (kept simple):
-            <ul style="margin:8px 0 0 18px">
-              <li>Processing happens on the user’s device (free).</li>
-              <li>First load downloads the splitter engine once (can take a moment).</li>
-              <li>Clips may cut slightly off exact seconds if the video isn’t keyframe-aligned (we can improve later).</li>
-            </ul>
-          </div>
+<div id="limit" class="small"></div>
+<div id="status" class="log">Waiting for video.</div>
+</div>
 
-          <div id="status" class="log">Status: waiting for a video file.</div>
-        </div>
+<div>
+<label>Downloads</label>
+<div id="downloads" class="list"></div>
+<button id="zip" disabled>Download all as ZIP</button>
+</div>
+</div>
+</div>
+</div>
 
-        <div>
-          <label class="tiny">3) Download your clips</label>
-          <div id="downloads" class="list"></div>
-<button id="downloadZip" disabled style="margin-top:12px">Download all as .zip</button>
-          <div class="box">
-            If you see no links after processing, tell me what your Status box says and I’ll fix it.
-          </div>
-        </div>
-      </div>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script type="module">
+import { createFFmpeg, fetchFile } from "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js";
 
-      <p class="tiny" style="margin-top:12px">
-        Monetisation later: public limits + Pro features. You will keep unlimited creator access.
-      </p>
-    </div>
-  </div>
+const CREATOR_KEY="MOMORE_FREE";
+const MAX_RUNS=3;
+const params=new URLSearchParams(location.search);
+const isCreator=params.get("key")===CREATOR_KEY;
+let runs=0;
 
-  <!-- ffmpeg.wasm (browser video processing) -->
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script  const downloadZipBtn = document.getElementById("downloadZip");
-let lastOutputs = []; // { name, data }type="module"// Remove old outputs so downloads don’t mix runs
-for (const f of ffmpeg.FS("readdir", "/")) {
-  if (f.startsWith("out_") && f.endsWith(".mp4")) {
-    try { ffmpeg.FS("unlink", f); } catch {}
-  }
-}>
-    import { createFFmpeg, fetchFile } from "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js";
+const fileEl=document.getElementById("file");
+const startBtn=document.getElementById("start");
+const statusEl=document.getElementById("status");
+const limitEl=document.getElementById("limit");
+const downloadsEl=document.getElementById("downloads");
+const zipBtn=document.getElementById("zip");
 
-    const fileEl = document.getElementById("file");
-    const startBtn = document.getElementById("start");
-    const statusEl = document.getElementById("status");
-    const downloadsEl = document.getElementById("downloads");
+let outputs=[];
+let selectedFile=null;
 
-    const DEFAULT_SECONDS = 300; // 5 minutes default
-    const MAX_SEGMENT_SECONDS = 900; // hard max 15 min (policy)
+function updateLimit(){
+if(isCreator){limitEl.textContent="Creator mode: unlimited";}
+else limitEl.textContent=`Free runs left: ${Math.max(0,MAX_RUNS-runs)}`;
+}
+updateLimit();
 
-    let selectedFile = null;
+fileEl.onchange=()=>{
+selectedFile=fileEl.files[0];
+startBtn.disabled=!selectedFile;
+statusEl.textContent=selectedFile?`Ready: ${selectedFile.name}`:"Waiting for video.";
+};
 
-    function setStatus(msg) {
-      statusEl.textContent = msg;
-    }
+const ffmpeg=createFFmpeg({corePath:"https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js"});
 
-    function clearDownloads() {
-  downloadsEl.innerHTML = "";
-  lastOutputs = [];
-  if (downloadZipBtn) downloadZipBtn.disabled = true;
-    }
+startBtn.onclick=async()=>{
+if(!selectedFile)return;
+if(!isCreator && runs++>=MAX_RUNS){statusEl.textContent="Free limit reached.";updateLimit();return;}
+updateLimit();
 
-    function addDownloadLink(filename, data) {
-      const blob = new Blob([data.buffer], { type: "video/mp4" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      a.textContent = `Download ${filename}`;
-      downloadsEl.appendChild(a);
-    }
+startBtn.disabled=true;
+outputs=[];downloadsEl.innerHTML="";zipBtn.disabled=true;
+statusEl.textContent="Loading engine…";
 
-    fileEl.addEventListener("change", () => {
-      selectedFile = fileEl.files?.[0] || null;
-      clearDownloads();
+await ffmpeg.load();
+ffmpeg.FS("writeFile","in.mp4",await fetchFile(selectedFile));
 
-      if (!selectedFile) {
-        startBtn.disabled = true;
-        setStatus("Status: waiting for a video file.");
-        return;
-      }
+const segment=Math.min(+length.value,900);
+const modeVal=mode.value;
+const qualityVal=quality.value;
+const formatVal=format.value;
 
-      startBtn.disabled = false;
-      setStatus(`Status: ready. Selected: ${selectedFile.name} (${Math.round(selectedFile.size/1024/1024)} MB)`);
-    });
+let crf=28,scale="1280:-2",ab="96k";
+if(qualityVal==="social"){crf=30;scale="854:-2";ab="64k";}
+if(qualityVal==="high"){crf=24;scale="1920:-2";ab="128k";}
 
-    startBtn.addEventListener("click", async (const formatEl = document.getElementById("format");
-const format = formatEl?.value || "auto";
+let vf=formatVal==="auto"?`scale=${scale}`:
+`scale=${scale}:force_original_aspect_ratio=increase,crop=${scale.split(":")[0]}:${formatVal==="vertical"?Math.round(scale.split(":")[0]*16/9):Math.round(scale.split(":")[0]*9/16)}`;
 
-// Choose target dimensions based on Quality
-let targetW = 1280; // balanced default
-if (quality === "social") targetW = 854;   // smaller
-if (quality === "high") targetW = 1920;    // larger
+statusEl.textContent="Splitting video…";
 
-let targetH = Math.round(targetW * 9 / 16); // default 16:9
-if (format === "vertical") targetH = Math.round(targetW * 16 / 9); // 9:16
-if (format === "auto") targetH = -1; // handled below
-
-// Build filter:
-// - Auto: just scale (what you already had)
-// - Vertical/Horizontal: scale to fill and crop to exact ratio
-let vf = "";
-if (format === "auto") {
-  vf = `scale=${scale}`;
-} else {
-  vf = `scale=${targetW}:${targetH}:force_original_aspect_ratio=increase,crop=${targetW}:${targetH}`;
-    }) => {
-      if (!selectedFile) return;
-
-      clearDownloads();
-      startBtn.disabled = true;
-
-    const lengthEl = document.getElementById("length");
-const chosen = parseInt(lengthEl.value, 10) || DEFAULT_SECONDS;
-const segmentTime = Math.min(chosen, MAX_SEGMENT_SECONDS); // hard cap at 15 minutes
-
-      setStatus("Status: loading video engine (first time may take a moment)...");
-      const ffmpeg = createFFmpeg({
-        log: false,
-        corePath: "https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js"
-      });
-
-      try {
-        if (!ffmpeg.isLoaded()) await ffmpeg.load();
-      } catch (e) {
-        setStatus("Error loading engine. Try reloading the page and using a smaller video.");
-        startBtn.disabled = false;
-        return;
-      }
-
-      try {
-        setStatus("Status: reading video file...");
-        const inputName = "input.mp4";
-        ffmpeg.FS("writeFile", inputName, await fetchFile(selectedFile));
-
-        setStatus("Status: splitting video into 5-minute clips...");
-        // Fast path: stream copy (no re-encode). Some sources may not cut exactly on the second.
-        // Output: out_000.mp4, out_001.mp4, ...
-        const modeEl = document.getElementById("mode");
-const mode = modeEl?.value || "fast";
-
-    const qualityEl = document.getElementById("quality");
-const quality = qualityEl?.value || "balanced";
-
-let crf = 28;       // lower = better quality, larger files
-let scale = "1280:-2"; // 720p-ish by default (keeps aspect ratio)
-let audioBitrate = "96k";
-
-if (quality === "social") {
-  crf = 30;
-  scale = "854:-2";      // ~480p
-  audioBitrate = "64k";
-} else if (quality === "high") {
-  crf = 24;
-  scale = "1920:-2";     // up to 1080p (if input allows)
-  audioBitrate = "128k";
-    }
-
-if (mode === "fast") {
-  // Very fast (no re-encode). May cut slightly off exact seconds on some files.
-  await ffmpeg.run(
-  "-i", inputName,
-  "-map", "0:v:0?",
-  "-map", "0:a:0?",
-  "-vf", vf,
-  "-c:v", "libx264",
-  "-preset", "veryfast",
-  "-crf", String(crf),
-  "-c:a", "aac",
-  "-b:a", audioBitrate,
-  "-movflags", "+faststart",
-  "-f", "segment",
-  "-segment_time", String(segmentTime),
-  "-reset_timestamps", "1",
-  "out_%03d.mp4"
-);
-  );
-} else {
-  // Accurate (re-encode). Slower, but cuts more reliably at the chosen length.
-  // Keeps files reasonably small for social media.
-  
-
-        setStatus("Status: preparing downloads...");
-        const files = ffmpeg.FS("readdir", "/").filter(f => f.startsWith("out_") && f.endsWith(".mp4"));
-
-        if (!files.length) {
-          setStatus("No clips were generated. Try a different video format (MP4) or a smaller file.");
-          startBtn.disabled = false;
-          return;
-        }
-
-        // Create download links
-        // Create nicer base name
-const baseName = (selectedFile.name || "video").replace(/\.[^/.]+$/, "").replace(/[^a-z0-9-_ ]/gi,await ffmpeg.run(
-  "-i", inputName,
-  "-map", "0:v:0?",
-  "-map", "0:a:0?",
-  "-vf", `scale=${scale}`,
-  "-c:v", "libx264",
-  "-preset", "veryfast",
-  "-crf", String(crf),
-  "-c:a", "aac",
-  "-b:a", audioBitrate,
-  "-movflags", "+faststart",
-  "-f", "segment",
-  "-segment_time", String(segmentTime),
-  "-reset_timestamps", "1",
-  "out_%03d.mp4"
-); "").trim().replace(/\s+/g, "_");
-
-for (let i = 0; i < files.length; i++) {
-  const f = files[i];
-  const data = ffmpeg.FS("readFile", f);
-
-  const niceName = `${baseName}_clip_${String(i+1).padStart(2,"0")}.mp4`;
-  lastOutputs.push({ name: niceName, data });
-
-  addDownloadLink(niceName, data);
+if(modeVal==="fast"){
+await ffmpeg.run("-i","in.mp4","-c","copy","-f","segment","-segment_time",String(segment),"-reset_timestamps","1","out_%03d.mp4");
+}else{
+await ffmpeg.run("-i","in.mp4","-vf",vf,"-c:v","libx264","-preset","veryfast","-crf",String(crf),"-c:a","aac","-b:a",ab,"-f","segment","-segment_time",String(segment),"-reset_timestamps","1","out_%03d.mp4");
 }
 
-if (downloadZipBtn) downloadZipBtn.disabled = false;
-
-        setStatus(`Done. Generated ${files.length} clips.`);
-      } catch (e) {
-        setStatus("Error during splitting. Try an MP4 video that is smaller/shorter. If it still fails, tell me this message and your video type.");
-      } finally {
-        startBtn.disabled = false; downloadZipBtn?.addEventListener("click", async () => {
-  if (!lastOutputs.length) return;
-
-  setStatus("Status: creating ZIP (this can take a moment)...");
-  downloadZipBtn.disabled = true;
-
-  try {
-    const zip = new window.JSZip();
-    for (const f of lastOutputs) {
-      zip.file(f.name, f.data);
-    }
-    const blob = await zip.generateAsync({ type: "blob" });
-
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "clipshortener_clips.zip";
-    document.body.appendChild(a);
-    a.click();
-    URL.revokeObjectURL(a.href);
-    a.remove();
-
-    setStatus(`Done. ZIP downloaded with ${lastOutputs.length} clips.`);
-  } catch (e) {
-    setStatus("ZIP failed. Try downloading clips individually or use a shorter video.");
-  } finally {
-    downloadZipBtn.disabled = false;
-  }
+const files=ffmpeg.FS("readdir","/").filter(f=>f.startsWith("out_"));
+files.forEach((f,i)=>{
+const data=ffmpeg.FS("readFile",f);
+const blob=new Blob([data.buffer],{type:"video/mp4"});
+const url=URL.createObjectURL(blob);
+const a=document.createElement("a");
+a.href=url;a.download=`clip_${i+1}.mp4`;a.textContent=a.download;
+downloadsEl.appendChild(a);
+outputs.push({name:a.download,data});
 });
-      }
-    });
-  </script>
+
+zipBtn.disabled=false;
+statusEl.textContent=`Done. ${files.length} clips created.`;
+startBtn.disabled=false;
+};
+
+zipBtn.onclick=async()=>{
+const zip=new JSZip();
+outputs.forEach(o=>zip.file(o.name,o.data));
+const blob=await zip.generateAsync({type:"blob"});
+const a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="clips.zip";
+a.click();
+};
+</script>
 </body>
   </html>
