@@ -37,6 +37,12 @@
 <select id="mode">
 <label class="tiny" style="display:block;margin-top:10px">4) Quality</label>
 <select id="quality">
+  <label class="tiny" style="display:block;margin-top:10px">5) Format</label>
+<select id="format">
+  <option value="auto" selected>Auto (keep original)</option>
+  <option value="vertical">Vertical 9:16 (Reels/TikTok)</option>
+  <option value="horizontal">Horizontal 16:9 (YouTube)</option>
+</select>
   <option value="social">Social (smallest)</option>
   <option value="balanced" selected>Balanced (recommended)</option>
   <option value="high">High (best quality)</option>
@@ -136,7 +142,27 @@ for (const f of ffmpeg.FS("readdir", "/")) {
       setStatus(`Status: ready. Selected: ${selectedFile.name} (${Math.round(selectedFile.size/1024/1024)} MB)`);
     });
 
-    startBtn.addEventListener("click", async () => {
+    startBtn.addEventListener("click", async (const formatEl = document.getElementById("format");
+const format = formatEl?.value || "auto";
+
+// Choose target dimensions based on Quality
+let targetW = 1280; // balanced default
+if (quality === "social") targetW = 854;   // smaller
+if (quality === "high") targetW = 1920;    // larger
+
+let targetH = Math.round(targetW * 9 / 16); // default 16:9
+if (format === "vertical") targetH = Math.round(targetW * 16 / 9); // 9:16
+if (format === "auto") targetH = -1; // handled below
+
+// Build filter:
+// - Auto: just scale (what you already had)
+// - Vertical/Horizontal: scale to fill and crop to exact ratio
+let vf = "";
+if (format === "auto") {
+  vf = `scale=${scale}`;
+} else {
+  vf = `scale=${targetW}:${targetH}:force_original_aspect_ratio=increase,crop=${targetW}:${targetH}`;
+    }) => {
       if (!selectedFile) return;
 
       clearDownloads();
@@ -191,13 +217,21 @@ if (quality === "social") {
 if (mode === "fast") {
   // Very fast (no re-encode). May cut slightly off exact seconds on some files.
   await ffmpeg.run(
-    "-i", inputName,
-    "-c", "copy",
-    "-map", "0",
-    "-f", "segment",
-    "-segment_time", String(segmentTime),
-    "-reset_timestamps", "1",
-    "out_%03d.mp4"
+  "-i", inputName,
+  "-map", "0:v:0?",
+  "-map", "0:a:0?",
+  "-vf", vf,
+  "-c:v", "libx264",
+  "-preset", "veryfast",
+  "-crf", String(crf),
+  "-c:a", "aac",
+  "-b:a", audioBitrate,
+  "-movflags", "+faststart",
+  "-f", "segment",
+  "-segment_time", String(segmentTime),
+  "-reset_timestamps", "1",
+  "out_%03d.mp4"
+);
   );
 } else {
   // Accurate (re-encode). Slower, but cuts more reliably at the chosen length.
