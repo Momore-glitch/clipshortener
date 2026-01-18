@@ -153,7 +153,7 @@ statusEl.textContent="Splitting video…";
 if(modeVal==="fast"){
 await ffmpeg.run("-i","in.mp4","-c","copy","-f","segment","-segment_time",String(segment),"-reset_timestamps","1","out_%03d.mp4");
 }else{
-await ffmpeg.run("-i","in.mp4","-vf",vf,"-c:v","libx264","-preset","veryfast","-crf",String(crf),"-c:a","aac","-b:a",ab,"-f","segment","-segment_time",String(segment),"-reset_timestamps","1","out_%03d.mp4");
+await ffmpeg.run("-i","in.mp4","-vf",vf,"-c:v","libx264","-preset","ultrafast","-crf",String(crf),"-c:a","aac","-b:a",ab,"-f","segment","-segment_time",String(segment),"-reset_timestamps","1","out_%03d.mp4");
 }
 
 const files=ffmpeg.FS("readdir","/").filter(f=>f.startsWith("out_"));
