@@ -91,7 +91,22 @@ button:disabled{opacity:.5}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script type="module">
+<script>
+  // If the module script fails, show the error in the Status box
+  const s = document.getElementById("status");
+  if (s) s.textContent = "Status: page loaded (waiting to start video engine).";
+
+  window.addEventListener("error", (e) => {
+    const el = document.getElementById("status");
+    if (el) el.textContent = "JS Error: " + (e.message || "unknown");
+  });
+
+  window.addEventListener("unhandledrejection", (e) => {
+    const el = document.getElementById("status");
+    if (el) el.textContent = "Promise Error: " + (e.reason?.message || e.reason || "unknown");
+  });
+</script>
+  <script type="module">
 import { createFFmpeg, fetchFile } from "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js";
 
 const CREATOR_KEY="MOMORE_FREE";
