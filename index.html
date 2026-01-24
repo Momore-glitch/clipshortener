@@ -136,9 +136,9 @@ Rules:
 
   <!-- Non-module libraries for maximum compatibility -->
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js"></script>
-
-  <script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg/0.12.10/ffmpeg.min.js"></script>
+  
     // ---------- Basic JS diagnostics (if this doesn't update, you're not running the latest page) ----------
     (function(){
       const jsAlive = document.getElementById("jsAlive");
@@ -261,10 +261,10 @@ Rules:
 
     // Use CDN core path (UMD core)
     const ffmpeg = createFFmpeg ? createFFmpeg({
-      log: false,
-      corePath: "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js"
-    }) : null;
-
+  log: false,
+  corePath: "https://cdnjs.cloudflare.com/ajax/libs/ffmpeg-core/0.12.6/ffmpeg-core.js"
+}) : null;
+  
     let ffmpegLoaded = false;
     async function ensureFFmpeg(){
       if (!ffmpeg) throw new Error("FFmpeg not available");
