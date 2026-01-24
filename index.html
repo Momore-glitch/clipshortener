@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- VERSION: FINAL-NO-MODULE-2026-01-24 -->
+  <!-- VERSION: FINAL-CDNJS-ROBUST-2026-01-24 -->
   <title>ClipShortener — Social Video Splitter</title>
   <meta name="description" content="Upload a video and split it into social-ready clips. Download clips individually or as a ZIP. Runs in your browser." />
 
@@ -48,7 +48,7 @@
     .box{margin-top:12px;padding:12px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:13px;line-height:1.35;white-space:pre-wrap}
     .log{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.25);color:var(--muted);font-size:13px;white-space:pre-wrap}
     .list a{display:block;margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--text);background:rgba(0,0,0,.22)}
-    .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted);margin-right:8px}
+    .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted);margin-right:8px;margin-top:6px}
     .k{font-family:ui-monospace,Menlo,Monaco,Consolas,monospace}
     .ok{color:var(--good)}
     .warn{color:var(--warn)}
@@ -61,14 +61,15 @@
   <div class="wrap">
     <div class="card">
       <h1>ClipShortener</h1>
-      <p>Video-only: upload a video → split into clips → download individually or as a ZIP.</p>
+      <p>Video-only: upload → split into clips → download videos.</p>
 
       <div class="box" id="envBox">
-        <span class="pill" id="jsAlive">JS: checking…</span>
-        <span class="pill" id="pageMode">Mode: unknown</span>
-        <span class="pill" id="ffmpegState">FFmpeg: not loaded</span>
+        <span class="pill ok" id="jsAlive">JS: alive</span>
+        <span class="pill" id="pageMode">Mode: …</span>
+        <span class="pill" id="ffmpegLib">FFmpeg lib: …</span>
+        <span class="pill" id="ffmpegCore">FFmpeg core: …</span>
         <div class="small" style="margin-top:8px">
-          If nothing works: open this site in <b>Chrome</b> (not inside TikTok/Instagram browser), try <b>Incognito</b>, and add <span class="k">?v=123</span> to force refresh.
+          Tip: if you changed code and don’t see it, add <span class="k">?v=123</span> to the URL or use Incognito.
         </div>
       </div>
 
@@ -88,22 +89,22 @@
 
           <label>3) Cut mode</label>
           <select id="mode">
-            <option value="fast">Fast (quick, may cut slightly off)</option>
+            <option value="fast">Fast (quick, can be slightly off)</option>
             <option value="accurate" selected>Accurate (recommended)</option>
           </select>
 
-          <label>4) Quality (Accurate mode only)</label>
+          <label>4) Quality (Accurate mode)</label>
           <select id="quality">
             <option value="social">Social (smallest)</option>
             <option value="balanced" selected>Balanced</option>
             <option value="high">High (largest)</option>
           </select>
 
-          <label>5) Format (Accurate mode only)</label>
+          <label>5) Format (Accurate mode)</label>
           <select id="format">
             <option value="auto">Auto (keep original)</option>
-            <option value="vertical" selected>Vertical 9:16 (Reels/TikTok)</option>
-            <option value="horizontal">Horizontal 16:9 (YouTube)</option>
+            <option value="vertical" selected>Vertical 9:16</option>
+            <option value="horizontal">Horizontal 16:9</option>
           </select>
 
           <div class="actions">
@@ -115,10 +116,10 @@
           <div id="status" class="log">Status: page loaded. Select a video.</div>
 
           <div class="box">
-Rules:
-- For short videos: use <b>Accurate</b>.
-- If your phone struggles: Accurate + <b>Social</b> quality.
-- 15-minute max per clip is enforced.
+If splitting fails:
+1) Use Accurate + Social + Auto + 30s
+2) Try Wi-Fi (ffmpeg core download is big)
+3) Use Chrome Incognito
           </div>
         </div>
 
@@ -126,61 +127,83 @@ Rules:
           <label>Downloads</label>
           <div id="downloads" class="list"></div>
           <button id="zip" class="ghost" disabled type="button">Download all as ZIP</button>
-          <div class="box small" id="zipNote">ZIP enables after clips exist.</div>
-
           <div class="log" id="debug">Debug:\n</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Non-module libraries for maximum compatibility -->
+  <!-- Libraries (non-module for maximum compatibility) -->
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  
+
+  <!-- ffmpeg.min.js from cdnjs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg/0.12.10/ffmpeg.min.js"></script>
-  
-    // ---------- Basic JS diagnostics (if this doesn't update, you're not running the latest page) ----------
-    (function(){
-      const jsAlive = document.getElementById("jsAlive");
-      const pageMode = document.getElementById("pageMode");
 
-      jsAlive.textContent = "JS: alive";
-      jsAlive.className = "pill ok";
-
-      // In-app browser detection (best-effort)
-      const ua = navigator.userAgent || "";
-      const inApp = /FBAN|FBAV|Instagram|Line\/|TikTok|Snapchat|Twitter|X\/|wv;/i.test(ua);
-      pageMode.textContent = inApp ? "Mode: in-app browser" : "Mode: normal browser";
-      pageMode.className = inApp ? "pill warn" : "pill ok";
-    })();
-
+  <script>
     // ---------- On-screen error reporting ----------
     window.addEventListener("error", (e) => {
-      const status = document.getElementById("status");
-      if (status) status.textContent = "JS Error: " + (e.message || "unknown");
+      const s = document.getElementById("status");
+      if (s) s.textContent = "JS Error: " + (e.message || "unknown");
     });
     window.addEventListener("unhandledrejection", (e) => {
-      const status = document.getElementById("status");
+      const s = document.getElementById("status");
       const msg = e && e.reason && e.reason.message ? e.reason.message : (""+e.reason);
-      if (status) status.textContent = "Promise Error: " + (msg || "unknown");
+      if (s) s.textContent = "Promise Error: " + (msg || "unknown");
     });
 
-    // ---------- App logic ----------
+    // ---------- Helpers ----------
+    const logEl = document.getElementById("debug");
+    function log(msg){ logEl.textContent += msg + "\n"; }
+    function setStatus(msg){ document.getElementById("status").textContent = msg; log("[STATUS] " + msg); }
+
+    // ---------- Environment pills ----------
+    const ua = navigator.userAgent || "";
+    const inApp = /FBAN|FBAV|Instagram|Line\/|TikTok|Snapchat|wv;|WebView/i.test(ua);
+    const pageMode = document.getElementById("pageMode");
+    pageMode.textContent = inApp ? "Mode: in-app browser" : "Mode: normal browser";
+    pageMode.className = inApp ? "pill warn" : "pill ok";
+
+    const ffmpegLib = document.getElementById("ffmpegLib");
+    const ffmpegCore = document.getElementById("ffmpegCore");
+
+    // ---------- Monetisation prep (soft limit) ----------
     const CREATOR_KEY = "MOMORE_FREE";
     const MAX_FREE_RUNS = 3;
-
     const params = new URLSearchParams(location.search);
     const isCreator = params.get("key") === CREATOR_KEY;
 
+    // Persist daily runs
+    const dayKey = "cs_day";
+    const runsKey = "cs_runs";
+    const today = new Date().toISOString().slice(0,10);
+    let runs = 0;
+    try {
+      if (localStorage.getItem(dayKey) !== today) {
+        localStorage.setItem(dayKey, today);
+        localStorage.setItem(runsKey, "0");
+      }
+      runs = parseInt(localStorage.getItem(runsKey) || "0", 10) || 0;
+    } catch {}
+
+    function updateLimitUI(){
+      const box = document.getElementById("limit");
+      if (isCreator) {
+        box.textContent = "Creator mode: unlimited runs enabled.";
+        box.className = "box ok";
+      } else {
+        const left = Math.max(0, MAX_FREE_RUNS - runs);
+        box.textContent = "Free runs left: " + left;
+        box.className = left === 0 ? "box warn" : "box";
+      }
+    }
+    updateLimitUI();
+
+    // ---------- UI elements ----------
     const fileEl = document.getElementById("file");
     const splitBtn = document.getElementById("split");
     const clearBtn = document.getElementById("clear");
-    const statusEl = document.getElementById("status");
-    const limitEl = document.getElementById("limit");
     const downloadsEl = document.getElementById("downloads");
     const zipBtn = document.getElementById("zip");
-    const debugEl = document.getElementById("debug");
-    const ffmpegState = document.getElementById("ffmpegState");
 
     const lengthEl = document.getElementById("length");
     const modeEl = document.getElementById("mode");
@@ -188,46 +211,21 @@ Rules:
     const formatEl = document.getElementById("format");
 
     let selectedFile = null;
-    let runs = 0;
+    let objectUrls = [];
+    let outputs = []; // { name, u8 }
 
-    // Persist runs per day (simple)
-    const dayKey = "clipshortener_day";
-    const runsKey = "clipshortener_runs";
-    const today = new Date().toISOString().slice(0,10);
-    try {
-      const savedDay = localStorage.getItem(dayKey);
-      if (savedDay !== today) {
-        localStorage.setItem(dayKey, today);
-        localStorage.setItem(runsKey, "0");
-      }
-      runs = parseInt(localStorage.getItem(runsKey) || "0", 10) || 0;
-    } catch {}
-
-    function log(msg){
-      debugEl.textContent += msg + "\n";
-    }
-    function setStatus(msg){
-      statusEl.textContent = msg;
-      log("[STATUS] " + msg);
-    }
-    function updateLimit(){
-      if (isCreator) {
-        limitEl.textContent = "Creator mode: unlimited runs enabled.";
-        limitEl.className = "box ok";
-      } else {
-        const left = Math.max(0, MAX_FREE_RUNS - runs);
-        limitEl.textContent = "Free runs left: " + left;
-        limitEl.className = left === 0 ? "box warn" : "box";
-      }
-    }
-    updateLimit();
-
-    // Enable button on file select
-    fileEl.addEventListener("change", () => {
-      selectedFile = fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
+    function clearOutputs(){
+      outputs = [];
       downloadsEl.innerHTML = "";
       zipBtn.disabled = true;
+      while (objectUrls.length) {
+        try { URL.revokeObjectURL(objectUrls.pop()); } catch {}
+      }
+    }
 
+    fileEl.addEventListener("change", () => {
+      selectedFile = fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
+      clearOutputs();
       if (!selectedFile) {
         splitBtn.disabled = true;
         setStatus("Status: no file selected.");
@@ -241,39 +239,42 @@ Rules:
     clearBtn.addEventListener("click", () => {
       try { fileEl.value = ""; } catch {}
       selectedFile = null;
-      downloadsEl.innerHTML = "";
-      zipBtn.disabled = true;
+      clearOutputs();
       splitBtn.disabled = true;
       setStatus("Status: cleared. Select a video.");
-      updateLimit();
+      updateLimitUI();
     });
 
-    // ---------- FFmpeg setup (UMD) ----------
-    const { createFFmpeg, fetchFile } = (window.FFmpeg || {});
-    if (!createFFmpeg || !fetchFile) {
-      ffmpegState.textContent = "FFmpeg: failed to load library";
-      ffmpegState.className = "pill bad";
-      setStatus("FFmpeg library did not load. Try Incognito Chrome, or check your internet connection.");
+    // ---------- FFmpeg wiring (UMD from cdnjs) ----------
+    const FF = window.FFmpeg || null;
+    if (!FF || !FF.createFFmpeg || !FF.fetchFile) {
+      ffmpegLib.textContent = "FFmpeg lib: missing";
+      ffmpegLib.className = "pill bad";
+      ffmpegCore.textContent = "FFmpeg core: not attempted";
+      ffmpegCore.className = "pill";
+      setStatus("FFmpeg library did not load. Use Chrome Incognito + cache-bust (?v=123).");
     } else {
-      ffmpegState.textContent = "FFmpeg: library loaded";
-      ffmpegState.className = "pill ok";
+      ffmpegLib.textContent = "FFmpeg lib: loaded";
+      ffmpegLib.className = "pill ok";
+      ffmpegCore.textContent = "FFmpeg core: not loaded";
+      ffmpegCore.className = "pill warn";
     }
 
-    // Use CDN core path (UMD core)
-    const ffmpeg = createFFmpeg ? createFFmpeg({
-  log: false,
-  corePath: "https://cdnjs.cloudflare.com/ajax/libs/ffmpeg-core/0.12.6/ffmpeg-core.js"
-}) : null;
-  
+    const ffmpeg = (FF && FF.createFFmpeg) ? FF.createFFmpeg({
+      log: false,
+      // ffmpeg-core from cdnjs (more reliable on many mobiles)
+      corePath: "https://cdnjs.cloudflare.com/ajax/libs/ffmpeg-core/0.12.6/ffmpeg-core.js"
+    }) : null;
+
     let ffmpegLoaded = false;
     async function ensureFFmpeg(){
       if (!ffmpeg) throw new Error("FFmpeg not available");
       if (ffmpegLoaded) return;
-      setStatus("Status: loading video engine (first time can take a moment)...");
+      setStatus("Status: loading FFmpeg core (big download)…");
       await ffmpeg.load();
       ffmpegLoaded = true;
-      ffmpegState.textContent = "FFmpeg: engine loaded";
-      ffmpegState.className = "pill ok";
+      ffmpegCore.textContent = "FFmpeg core: loaded";
+      ffmpegCore.className = "pill ok";
     }
 
     function safeInt(v, fallback){
@@ -282,9 +283,7 @@ Rules:
     }
 
     function qualitySettings(q){
-      let crf = 28;
-      let audio = "96k";
-      let width = 1280;
+      let crf = 28, audio = "96k", width = 1280;
       if (q === "social") { crf = 30; audio = "64k"; width = 854; }
       if (q === "high")   { crf = 24; audio = "128k"; width = 1920; }
       return { crf, audio, width };
@@ -306,19 +305,7 @@ Rules:
       try { ffmpeg.FS("unlink", "input.mp4"); } catch {}
     }
 
-    const objectUrls = [];
-    const outputs = []; // for ZIP: {name, u8}
-
-    function clearOutputState(){
-      outputs.length = 0;
-      downloadsEl.innerHTML = "";
-      zipBtn.disabled = true;
-      while (objectUrls.length) {
-        try { URL.revokeObjectURL(objectUrls.pop()); } catch {}
-      }
-    }
-
-    function addLink(name, u8){
+    function addDownload(name, u8){
       const blob = new Blob([u8.buffer], { type: "video/mp4" });
       const url = URL.createObjectURL(blob);
       objectUrls.push(url);
@@ -334,7 +321,7 @@ Rules:
 
     zipBtn.addEventListener("click", async () => {
       if (!outputs.length) return;
-      setStatus("Status: creating ZIP...");
+      setStatus("Status: creating ZIP…");
       zipBtn.disabled = true;
       try {
         const zip = new window.JSZip();
@@ -365,24 +352,23 @@ Rules:
       if (!isCreator) {
         if (runs >= MAX_FREE_RUNS) {
           setStatus("Free limit reached. Pro access coming soon.");
-          updateLimit();
+          updateLimitUI();
           return;
         }
         runs++;
         try { localStorage.setItem(runsKey, String(runs)); } catch {}
-        updateLimit();
+        updateLimitUI();
       }
 
       splitBtn.disabled = true;
-      clearOutputState();
+      clearOutputs();
 
-      // Read values (this ensures modeVal changes correctly)
       const modeVal = modeEl.value;
       const qualityVal = qualityEl.value;
       const formatVal = formatEl.value;
 
       const chosen = safeInt(lengthEl.value, 60);
-      const segmentTime = Math.min(Math.max(1, chosen), 900); // hard cap 15m
+      const segmentTime = Math.min(Math.max(1, chosen), 900);
 
       setStatus("Status: starting… Mode=" + modeVal);
 
@@ -390,13 +376,13 @@ Rules:
         await ensureFFmpeg();
 
         cleanupOldOutputs();
+
         setStatus("Status: reading file…");
-        ffmpeg.FS("writeFile", "input.mp4", await fetchFile(selectedFile));
+        ffmpeg.FS("writeFile", "input.mp4", await FF.fetchFile(selectedFile));
 
         setStatus("Status: splitting…");
 
         if (modeVal === "fast") {
-          // Fast: stream copy
           await ffmpeg.run(
             "-i", "input.mp4",
             "-c", "copy",
@@ -407,7 +393,6 @@ Rules:
             "out_%03d.mp4"
           );
         } else {
-          // Accurate: re-encode with ultrafast for phone survival
           const { crf, audio, width } = qualitySettings(qualityVal);
           const vf = buildVF(width, formatVal);
 
@@ -435,12 +420,12 @@ Rules:
           .sort();
 
         if (!outFiles.length) {
-          setStatus("No clips created. Try Accurate + Social quality + 30s length.");
-          splitBtn.disabled = false;
+          setStatus("No clips created. Try Accurate + Social + Auto + 30s.");
           return;
         }
 
-        const base = (selectedFile.name || "video").replace(/\.[^/.]+$/, "")
+        const base = (selectedFile.name || "video")
+          .replace(/\.[^/.]+$/, "")
           .replace(/[^a-z0-9-_ ]/gi, "")
           .trim()
           .replace(/\s+/g, "_") || "video";
@@ -448,7 +433,7 @@ Rules:
         outFiles.forEach((f, i) => {
           const u8 = ffmpeg.FS("readFile", f);
           const nice = `${base}_clip_${String(i+1).padStart(2,"0")}.mp4`;
-          addLink(nice, u8);
+          addDownload(nice, u8);
         });
 
         zipBtn.disabled = false;
@@ -456,7 +441,7 @@ Rules:
       } catch (e) {
         setStatus("Error: " + (e && e.message ? e.message : String(e)));
       } finally {
-        splitBtn.disabled = !selectedFile ? true : false;
+        splitBtn.disabled = !selectedFile;
       }
     });
   </script>
