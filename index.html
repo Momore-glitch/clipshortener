@@ -138,7 +138,7 @@ Some low-end phones cannot run FFmpeg in-browser reliably.
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
   <!-- FFmpeg UMD -->
-  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js"></script>
 
   <script>
     // ---------- Error reporting (always visible) ----------
@@ -260,7 +260,7 @@ Some low-end phones cannot run FFmpeg in-browser reliably.
     // Core path (UMD core) — commonly works on GitHub Pages
     const ffmpeg = (FF && FF.createFFmpeg) ? FF.createFFmpeg({
       log: false,
-      corePath: "https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js"
+      corePath: "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js"
     }) : null;
 
     let ffmpegLoaded = false;
