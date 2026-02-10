@@ -1,1 +1,380 @@
--
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- VERSION: REFURBISHED-ROBUST-UMD-2026-01-26 -->
+  <title>ClipShortener — Video Splitter</title>
+  <meta name="description" content="Upload a video and split it into clips. Download clips individually or as a ZIP. Runs in-browser." />
+
+  <style>
+    :root{
+      --bg:#0b0f17; --card:rgba(255,255,255,.03); --text:#e5e7eb; --muted:#9ca3af;
+      --line:#243042; --field:#0b0f17; --good:#34d399; --warn:#fbbf24; --bad:#fb7185;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{width:min(980px,92vw);margin:0 auto;padding:18px 0}
+    .card{border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--card)}
+    h1{margin:0 0 6px;font-size:24px}
+    p{margin:8px 0;color:var(--muted);line-height:1.4}
+    .row{display:grid;grid-template-columns:1fr;gap:14px;margin-top:12px}
+    @media(min-width:900px){.row{grid-template-columns:1fr 1fr;align-items:start}}
+    label{display:block;margin-top:10px;font-size:12px;color:var(--muted)}
+    input,select,button{
+      width:100%; margin-top:6px; padding:12px; border-radius:12px;
+      border:1px solid var(--line); background:var(--field); color:var(--text);
+      font-size:16px; outline:none;
+    }
+    select option{background:var(--field);color:var(--text)}
+    button{border:none;background:var(--text);color:var(--bg);font-weight:800;cursor:pointer}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .ghost{background:transparent;border:1px solid var(--line);color:var(--text);font-weight:700}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .actions button{flex:1;min-width:160px}
+    .box{margin-top:12px;padding:12px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:13px;line-height:1.35;white-space:pre-wrap}
+    .log{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.25);color:var(--muted);font-size:13px;white-space:pre-wrap}
+    .list a{display:block;margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--text);background:rgba(0,0,0,.22)}
+    .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted);margin-right:8px;margin-top:6px}
+    .ok{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+    .small{font-size:12px} .k{font-family:ui-monospace,Menlo,Monaco,Consolas,monospace}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>ClipShortener</h1>
+      <p>Video-only: upload → split → download.</p>
+
+      <div class="box">
+        <span class="pill ok" id="pillJs">JS: alive</span>
+        <span class="pill" id="pillMode">Mode: …</span>
+        <span class="pill" id="pillZip">JSZip: …</span>
+        <span class="pill" id="pillLib">FFmpeg lib: …</span>
+        <span class="pill" id="pillCore">FFmpeg core: …</span>
+        <div class="small" style="margin-top:8px">
+          Always test with cache-bust: <span class="k">?v=123</span>. Use Chrome Incognito. Avoid in-app browsers.
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>1) Upload video (MP4 recommended)</label>
+          <input id="file" type="file" accept="video/*" />
+
+          <label>2) Clip length</label>
+          <select id="length">
+            <option value="15">15 seconds</option>
+            <option value="30" selected>30 seconds</option>
+            <option value="60">60 seconds</option>
+            <option value="300">5 minutes</option>
+            <option value="900">15 minutes (max)</option>
+          </select>
+
+          <label>3) Cut mode</label>
+          <select id="mode">
+            <option value="fast">Fast (quick, may cut off)</option>
+            <option value="accurate" selected>Accurate (recommended)</option>
+          </select>
+
+          <label>4) Quality (Accurate mode)</label>
+          <select id="quality">
+            <option value="social" selected>Social (smallest)</option>
+            <option value="balanced">Balanced</option>
+            <option value="high">High (largest)</option>
+          </select>
+
+          <label>5) Format (Accurate mode)</label>
+          <select id="format">
+            <option value="auto" selected>Auto (keep original)</option>
+            <option value="vertical">Vertical 9:16</option>
+            <option value="horizontal">Horizontal 16:9</option>
+          </select>
+
+          <div class="actions">
+            <button id="split" disabled>Split video</button>
+            <button id="clear" class="ghost" type="button">Clear</button>
+          </div>
+
+          <div id="limit" class="box">Free runs left: 3</div>
+          <div id="status" class="log">Status: page loaded. Select a video.</div>
+        </div>
+
+        <div>
+          <label>Downloads</label>
+          <div id="downloads" class="list"></div>
+          <button id="zip" class="ghost" disabled type="button">Download all as ZIP</button>
+          <div class="log" id="debug">Debug:\n</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JSZip -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+  <!-- FFmpeg UMD (IMPORTANT: window.FFmpeg exists only with UMD build) -->
+  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.min.js"></script>
+
+  <script>
+    const statusEl = document.getElementById("status");
+    const debugEl = document.getElementById("debug");
+    const downloadsEl = document.getElementById("downloads");
+    const zipBtn = document.getElementById("zip");
+    const splitBtn = document.getElementById("split");
+    const clearBtn = document.getElementById("clear");
+    const fileEl = document.getElementById("file");
+    const lengthEl = document.getElementById("length");
+    const modeEl = document.getElementById("mode");
+    const qualityEl = document.getElementById("quality");
+    const formatEl = document.getElementById("format");
+
+    const pillMode = document.getElementById("pillMode");
+    const pillZip = document.getElementById("pillZip");
+    const pillLib = document.getElementById("pillLib");
+    const pillCore = document.getElementById("pillCore");
+
+    function log(msg){ debugEl.textContent += msg + "\n"; }
+    function setStatus(msg){ statusEl.textContent = msg; log("[STATUS] " + msg); }
+
+    window.addEventListener("error", (e) => setStatus("JS Error: " + (e.message || "unknown")));
+    window.addEventListener("unhandledrejection", (e) => {
+      const msg = e && e.reason && e.reason.message ? e.reason.message : (""+e.reason);
+      setStatus("Promise Error: " + (msg || "unknown"));
+    });
+
+    // Mode pill (in-app browsers cause many failures)
+    const ua = navigator.userAgent || "";
+    const inApp = /FBAN|FBAV|Instagram|Line\/|TikTok|Snapchat|wv;|WebView/i.test(ua);
+    pillMode.textContent = inApp ? "Mode: in-app browser" : "Mode: normal browser";
+    pillMode.className = inApp ? "pill warn" : "pill ok";
+
+    // JSZip pill
+    pillZip.textContent = window.JSZip ? "JSZip: loaded" : "JSZip: missing";
+    pillZip.className = window.JSZip ? "pill ok" : "pill bad";
+
+    // Monetisation soft limit
+    const CREATOR_KEY = "MOMORE_FREE";
+    const MAX_FREE_RUNS = 3;
+    const params = new URLSearchParams(location.search);
+    const isCreator = params.get("key") === CREATOR_KEY;
+
+    const dayKey = "cs_day";
+    const runsKey = "cs_runs";
+    const today = new Date().toISOString().slice(0,10);
+    let runs = 0;
+    try {
+      if (localStorage.getItem(dayKey) !== today) {
+        localStorage.setItem(dayKey, today);
+        localStorage.setItem(runsKey, "0");
+      }
+      runs = parseInt(localStorage.getItem(runsKey) || "0", 10) || 0;
+    } catch {}
+
+    const limitEl = document.getElementById("limit");
+    function updateLimitUI(){
+      if (isCreator) {
+        limitEl.textContent = "Creator mode: unlimited runs enabled.";
+        limitEl.className = "box ok";
+      } else {
+        const left = Math.max(0, MAX_FREE_RUNS - runs);
+        limitEl.textContent = "Free runs left: " + left;
+        limitEl.className = left === 0 ? "box warn" : "box";
+      }
+    }
+    updateLimitUI();
+
+    // Output cleanup
+    let selectedFile = null;
+    let outputs = [];
+    let objectUrls = [];
+    function clearOutputs(){
+      outputs = [];
+      downloadsEl.innerHTML = "";
+      zipBtn.disabled = true;
+      while (objectUrls.length) {
+        try { URL.revokeObjectURL(objectUrls.pop()); } catch {}
+      }
+    }
+
+    // Detect FFmpeg global (UMD)
+    const FF = window.FFmpeg || null;
+    if (!FF || !FF.createFFmpeg || !FF.fetchFile) {
+      pillLib.textContent = "FFmpeg lib: missing";
+      pillLib.className = "pill bad";
+      pillCore.textContent = "FFmpeg core: not attempted";
+      pillCore.className = "pill";
+      setStatus("FFmpeg library did not load. If this persists, your network/browser is blocking the CDN.");
+    } else {
+      pillLib.textContent = "FFmpeg lib: loaded";
+      pillLib.className = "pill ok";
+      pillCore.textContent = "FFmpeg core: not loaded";
+      pillCore.className = "pill warn";
+    }
+
+    // Create ffmpeg instance (UMD core). Try jsDelivr; if core fails tomorrow we’ll add 2nd fallback.
+    const ffmpeg = (FF && FF.createFFmpeg) ? FF.createFFmpeg({
+      log: false,
+      corePath: "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js"
+    }) : null;
+
+    let ffmpegLoaded = false;
+    async function ensureFFmpeg(){
+      if (!ffmpeg) throw new Error("FFmpeg not available");
+      if (ffmpegLoaded) return;
+      setStatus("Status: loading FFmpeg core (big download)…");
+      await ffmpeg.load();
+      ffmpegLoaded = true;
+      pillCore.textContent = "FFmpeg core: loaded";
+      pillCore.className = "pill ok";
+    }
+
+    function safeInt(v, fallback){ const n = parseInt(v, 10); return Number.isFinite(n) ? n : fallback; }
+    function qualitySettings(q){
+      let crf = 30, audio = "64k", width = 854;
+      if (q === "balanced") { crf = 28; audio = "96k"; width = 1280; }
+      if (q === "high")     { crf = 24; audio = "128k"; width = 1920; }
+      return { crf, audio, width };
+    }
+    function buildVF(width, fmt){
+      if (fmt === "auto") return `scale=${width}:-2`;
+      const h = (fmt === "vertical") ? Math.round(width * 16 / 9) : Math.round(width * 9 / 16);
+      return `scale=${width}:${h}:force_original_aspect_ratio=increase,crop=${width}:${h}`;
+    }
+    function cleanupOldOutputs(){
+      const files = ffmpeg.FS("readdir", "/");
+      files.forEach(f => {
+        if (f.startsWith("out_") && f.endsWith(".mp4")) { try { ffmpeg.FS("unlink", f); } catch {} }
+      });
+      try { ffmpeg.FS("unlink", "input.mp4"); } catch {}
+    }
+    function addDownload(name, u8){
+      const blob = new Blob([u8.buffer], { type: "video/mp4" });
+      const url = URL.createObjectURL(blob);
+      objectUrls.push(url);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      a.textContent = "Download " + name;
+      downloadsEl.appendChild(a);
+      outputs.push({ name, u8 });
+    }
+
+    zipBtn.addEventListener("click", async () => {
+      if (!outputs.length) return;
+      setStatus("Status: creating ZIP…");
+      zipBtn.disabled = true;
+      try {
+        const zip = new window.JSZip();
+        outputs.forEach(o => zip.file(o.name, o.u8));
+        const blob = await zip.generateAsync({ type: "blob" });
+        const url = URL.createObjectURL(blob);
+        objectUrls.push(url);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "clipshortener_clips.zip";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setStatus("Done. ZIP downloaded (" + outputs.length + " clips).");
+      } catch {
+        setStatus("ZIP failed. Download clips individually.");
+      } finally {
+        zipBtn.disabled = false;
+      }
+    });
+
+    fileEl.addEventListener("change", () => {
+      selectedFile = fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
+      clearOutputs();
+      if (!selectedFile) { splitBtn.disabled = true; setStatus("Status: no file selected."); return; }
+      splitBtn.disabled = false;
+      const mb = Math.round((selectedFile.size/(1024*1024))*100)/100;
+      setStatus("Status: ready. " + selectedFile.name + " (" + mb + " MB)");
+    });
+
+    clearBtn.addEventListener("click", () => {
+      try { fileEl.value = ""; } catch {}
+      selectedFile = null;
+      clearOutputs();
+      splitBtn.disabled = true;
+      setStatus("Status: cleared. Select a video.");
+      updateLimitUI();
+    });
+
+    splitBtn.addEventListener("click", async () => {
+      if (!selectedFile) return;
+
+      if (!isCreator) {
+        if (runs >= MAX_FREE_RUNS) { setStatus("Free limit reached. Pro access coming soon."); updateLimitUI(); return; }
+        runs++;
+        try { localStorage.setItem(runsKey, String(runs)); } catch {}
+        updateLimitUI();
+      }
+
+      clearOutputs();
+      splitBtn.disabled = true;
+
+      const modeVal = modeEl.value;
+      const qualityVal = qualityEl.value;
+      const formatVal = formatEl.value;
+      const segmentTime = Math.min(Math.max(1, safeInt(lengthEl.value, 30)), 900);
+
+      try {
+        await ensureFFmpeg();
+        cleanupOldOutputs();
+
+        setStatus("Status: reading file…");
+        ffmpeg.FS("writeFile", "input.mp4", await FF.fetchFile(selectedFile));
+
+        setStatus("Status: splitting… (Mode=" + modeVal + ")");
+        if (modeVal === "fast") {
+          await ffmpeg.run(
+            "-i", "input.mp4",
+            "-c", "copy",
+            "-map", "0",
+            "-f", "segment",
+            "-segment_time", String(segmentTime),
+            "-reset_timestamps", "1",
+            "out_%03d.mp4"
+          );
+        } else {
+          const { crf, audio, width } = qualitySettings(qualityVal);
+          const vf = buildVF(width, formatVal);
+          await ffmpeg.run(
+            "-i", "input.mp4",
+            "-map", "0:v:0?",
+            "-map", "0:a:0?",
+            "-vf", vf,
+            "-c:v", "libx264",
+            "-preset", "ultrafast",
+            "-crf", String(crf),
+            "-c:a", "aac",
+            "-b:a", audio,
+            "-movflags", "+faststart",
+            "-f", "segment",
+            "-segment_time", String(segmentTime),
+            "-reset_timestamps", "1",
+            "out_%03d.mp4"
+          );
+        }
+
+        setStatus("Status: preparing downloads…");
+        const outFiles = ffmpeg.FS("readdir", "/").filter(f => f.startsWith("out_") && f.endsWith(".mp4")).sort();
+        if (!outFiles.length) { setStatus("No clips created. Try Accurate + Social + Auto + 30s."); return; }
+
+        const base = (selectedFile.name || "video").replace(/\.[^/.]+$/, "").replace(/[^a-z0-9-_ ]/gi, "").trim().replace(/\s+/g, "_") || "video";
+        outFiles.forEach((f, i) => addDownload(`${base}_clip_${String(i+1).padStart(2,"0")}.mp4`, ffmpeg.FS("readFile", f)));
+
+        zipBtn.disabled = false;
+        setStatus("Done. Created " + outFiles.length + " clip(s).");
+      } catch (e) {
+        setStatus("Error: " + (e && e.message ? e.message : String(e)));
+      } finally {
+        splitBtn.disabled = !selectedFile;
+      }
+    });
+  </script>
+</body>
+  </html>
