@@ -112,6 +112,7 @@
   </div>
 
   <!-- JSZip -->
+  const API_BASE = "https://mrayz-clipshortener-api.hf.space";
   <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.min.js"></script>
 
   <!-- FFmpeg UMD (IMPORTANT: window.FFmpeg exists only with UMD build) -->
@@ -302,19 +303,52 @@
       setStatus("Status: cleared. Select a video.");
       updateLimitUI();
     });
+splitBtn.addEventListener("click", async () => {
+  if (!selectedFile) return;
 
-    splitBtn.addEventListener("click", async () => {
-      if (!selectedFile) return;
+  setStatus("Uploading video to server…");
+  splitBtn.disabled = true;
 
-      if (!isCreator) {
-        if (runs >= MAX_FREE_RUNS) { setStatus("Free limit reached. Pro access coming soon."); updateLimitUI(); return; }
-        runs++;
-        try { localStorage.setItem(runsKey, String(runs)); } catch {}
-        updateLimitUI();
+  try {
+    const segmentTime = parseInt(lengthEl.value || "30", 10);
+    const modeVal = modeEl.value || "fast";
+
+    const form = new FormData();
+    form.append("file", selectedFile);
+
+    const res = await fetch(
+      `${API_BASE}/split?segment_seconds=${segmentTime}&mode=${modeVal}`,
+      {
+        method: "POST",
+        body: form
       }
+    );
 
-      clearOutputs();
-      splitBtn.disabled = true;
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Server split failed");
+    }
+
+    setStatus("Preparing downloads…");
+
+    downloadsEl.innerHTML = "";
+    data.clips.forEach(name => {
+      const a = document.createElement("a");
+      a.href = `${API_BASE}/download/${name}`;
+      a.textContent = "Download " + name;
+      a.className = "";
+      downloadsEl.appendChild(a);
+    });
+
+    setStatus("Done. Clips ready to download.");
+
+  } catch (e) {
+    setStatus("Error: " + e.message);
+  } finally {
+    splitBtn.disabled = false;
+  }
+});
 
       const modeVal = modeEl.value;
       const qualityVal = qualityEl.value;
