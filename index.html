@@ -285,15 +285,19 @@
         zipBtn.disabled = false;
       }
     });
+    
+fileEl.addEventListener("change", () => {
+  selectedFile = fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
 
-    fileEl.addEventListener("change", () => {
-      selectedFile = fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
-      clearOutputs();
-      if (!selectedFile) { splitBtn.disabled = true; setStatus("Status: no file selected."); return; }
-      splitBtn.disabled = false;
-      const mb = Math.round((selectedFile.size/(1024*1024))*100)/100;
-      setStatus("Status: ready. " + selectedFile.name + " (" + mb + " MB)");
-    });
+  if (!selectedFile) {
+    splitBtn.disabled = true;
+    setStatus("Status: no file selected.");
+    return;
+  }
+
+  splitBtn.disabled = false;
+  setStatus("Status: ready. " + selectedFile.name);
+});
 
     clearBtn.addEventListener("click", () => {
       try { fileEl.value = ""; } catch {}
