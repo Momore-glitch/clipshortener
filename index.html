@@ -450,9 +450,11 @@ splitBtn.addEventListener("click", async () => {
       }
     });
   </script>
-  <script>
-  document.getElementById("status").textContent = "BOOT OK v901";
-</script>
 </body>
   </html>
-
+<script>
+  const s = document.getElementById("status");
+  if (s && s.textContent.trim() === "Status: page loaded. Select a video.") {
+    s.textContent = "BOOT OK v901";
+  }
+</script>
