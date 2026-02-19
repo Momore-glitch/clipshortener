@@ -119,6 +119,33 @@
   <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.min.js"></script>
 
   <script>
+
+    // --- HARD WIRING (ensures Split enables) ---
+const fileEl = document.getElementById("file");
+const splitBtn = document.getElementById("split");
+const statusEl = document.getElementById("status");
+
+let selectedFile = null;
+
+// Safety checks (shows the real problem immediately)
+if (!fileEl) {
+  statusEl && (statusEl.textContent = "Error: file input (#file) not found in HTML.");
+  throw new Error("file input #file missing");
+}
+if (!splitBtn) {
+  statusEl && (statusEl.textContent = "Error: split button (#split) not found in HTML.");
+  throw new Error("split button #split missing");
+}
+
+// Force initial state
+splitBtn.disabled = true;
+
+// Enable when a file is selected
+fileEl.addEventListener("change", () => {
+  selectedFile = fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
+  splitBtn.disabled = !selectedFile;
+  if (statusEl) statusEl.textContent = selectedFile ? "Status: ready (" + selectedFile.name + ")" : "Status: no file selected.";
+});
     const statusEl = document.getElementById("status");
     const debugEl = document.getElementById("debug");
     const downloadsEl = document.getElementById("downloads");
