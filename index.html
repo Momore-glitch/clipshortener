@@ -102,9 +102,9 @@
         (data.clips || []).forEach(name => {
           const a = document.createElement("a");
           a.href = `${API_BASE}/download/${name}`;
-          a.textContent = "Download " + name;
-          downloadsEl.appendChild(a);
-        });
+          const cleanName = name.includes("__") ? name.split("__")[1] : name;
+a.textContent = "Download " + cleanName;
+a.href = api + "/download/" + name;
 
         if (!data.clips || !data.clips.length) {
           setStatus("Server returned no clips (try smaller file / different mode).");
