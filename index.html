@@ -17,6 +17,7 @@
     .log{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px;white-space:pre-wrap;color:var(--muted)}
     a{display:block;margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--text)}
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
 <body>
   <div class="wrap">
@@ -111,6 +112,30 @@
 
   downloadsEl.appendChild(a);
 });
+
+        document.getElementById("downloadAll").addEventListener("click", async () => {
+  if (!window.currentClips || !currentClips.length) {
+    alert("No clips yet.");
+    return;
+  }
+
+  const zip = new JSZip();
+
+  for (const name of currentClips) {
+    const res = await fetch(`${API_BASE}/download/${name}`);
+    const blob = await res.blob();
+    zip.file(name, blob);
+  }
+
+  const content = await zip.generateAsync({ type: "blob" });
+  const url = URL.createObjectURL(content);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "clips.zip";
+  a.click();
+});
+        
         if (!data.clips || !data.clips.length) {
           setStatus("Server returned no clips (try smaller file / different mode).");
         }
@@ -123,6 +148,31 @@
     });
 
     setStatus("Status: page loaded. Select a video.");
+
+    document.getElementById("downloadAll").addEventListener("click", async () => {
+  if (!window.currentClips || !currentClips.length) {
+    alert("No clips yet.");
+    return;
+  }
+
+  const zip = new JSZip();
+
+  for (const name of currentClips) {
+    const res = await fetch(`${API_BASE}/download/${name}`);
+    const blob = await res.blob();
+    zip.file(name, blob);
+  }
+
+  const content = await zip.generateAsync({ type: "blob" });
+  const url = URL.createObjectURL(content);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "clips.zip";
+  a.click();
+});
+
+    
   </script>
 </body>
 </html>
