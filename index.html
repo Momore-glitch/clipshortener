@@ -3,176 +3,294 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ClipShortener — Server Split</title>
+  <title>ClipShortener</title>
   <style>
-    :root{--bg:#0b0f17;--card:rgba(255,255,255,.03);--text:#e5e7eb;--muted:#9ca3af;--line:#243042}
+    :root{
+      --bg:#0b0f17; --card:rgba(255,255,255,.04);
+      --text:#e5e7eb; --muted:#9ca3af; --line:#243042;
+      --good:#34d399; --warn:#fbbf24; --bad:#fb7185;
+      --field:#0b0f17;
+    }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    .wrap{width:min(900px,92vw);margin:0 auto;padding:18px 0}
+    .wrap{width:min(920px,92vw);margin:0 auto;padding:18px 0}
     .card{border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--card)}
-    label{display:block;margin-top:12px;font-size:12px;color:var(--muted)}
-    input,select,button{width:100%;margin-top:6px;padding:12px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--text);font-size:16px}
-    button{background:var(--text);color:#0b0f17;font-weight:800;border:none;cursor:pointer}
+    h1{margin:0 0 10px;font-size:26px}
+    .row{display:grid;grid-template-columns:1fr;gap:14px}
+    label{display:block;margin-top:10px;font-size:12px;color:var(--muted)}
+    input,select,button{
+      width:100%; margin-top:6px; padding:12px;
+      border-radius:12px; border:1px solid var(--line);
+      background:var(--field); color:var(--text);
+      font-size:16px; outline:none;
+    }
+    select option{background:var(--field);color:var(--text)}
+    button{border:none;background:var(--text);color:var(--bg);font-weight:800;cursor:pointer}
     button:disabled{opacity:.55;cursor:not-allowed}
-    .log{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px;white-space:pre-wrap;color:var(--muted)}
-    a{display:block;margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--text)}
+    .ghost{background:transparent;border:1px solid var(--line);color:var(--text);font-weight:700}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .actions button{flex:1;min-width:160px}
+    .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted);margin-right:8px;margin-top:6px}
+    .ok{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+    .log{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.22);color:var(--muted);font-size:13px;white-space:pre-wrap}
+    .list a{display:block;margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--text);background:rgba(0,0,0,.20)}
+    .small{font-size:12px;color:var(--muted);line-height:1.35;margin-top:10px}
+    .k{font-family:ui-monospace,Menlo,Monaco,Consolas,monospace}
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
+
 <body>
   <div class="wrap">
     <div class="card">
-      <h2 style="margin:0 0 8px">ClipShortener</h2>
-      <div class="log" id="status">Status: page loaded.</div>
+      <h1>ClipShortener</h1>
 
-      <label>Backend API</label>
-      <input id="api" value="https://mrayz-clipshortener-api.hf.space" />
+      <div>
+        <span class="pill" id="pillApi">API: …</span>
+        <span class="pill" id="pillStatus">Status: …</span>
+      </div>
 
-      <label>Upload MP4</label>
-      <input id="file" type="file" accept="video/*" />
+      <div class="row">
+        <div>
+          <label>Backend API (your HuggingFace Space URL)</label>
+          <input id="api" type="url" spellcheck="false" value="https://mrayz-clipshortener-api.hf.space" />
 
-      <label>Clip length</label>
-      <select id="length">
-        <option value="15">15 seconds</option>
-        <option value="30" selected>30 seconds</option>
-        <option value="60">60 seconds</option>
-        <option value="300">5 minutes</option>
-        <option value="900">15 minutes (max)</option>
-      </select>
+          <label>Upload MP4</label>
+          <input id="file" type="file" accept="video/*" />
 
-      <label>Mode</label>
-      <select id="mode">
-        <option value="fast" selected>fast</option>
-        <option value="accurate">accurate</option>
-      </select>
+          <label>Clip length</label>
+          <select id="length">
+            <option value="15">15 seconds</option>
+            <option value="30" selected>30 seconds</option>
+            <option value="60">60 seconds</option>
+            <option value="300">5 minutes</option>
+            <option value="900">15 minutes</option>
+          </select>
 
-      <button id="split" disabled>Split video</button>
+          <label>Mode</label>
+          <select id="mode">
+            <option value="fast" selected>fast</option>
+            <option value="accurate">accurate</option>
+          </select>
 
-      <div class="log" id="debug">Debug:\n</div>
-      <div id="downloads"></div>
+          <div class="actions">
+            <button id="split" disabled>Split video</button>
+            <button id="check" class="ghost" type="button">Ping API</button>
+            <button id="clear" class="ghost" type="button">Clear</button>
+          </div>
+
+          <div class="log" id="status">Status: page loaded. Select a video.</div>
+
+          <div class="small">
+            If you see <b>HTTP 503</b> it usually means the HF Space is <b>sleeping</b> or restarting.
+            This page will auto-retry and tell you what’s happening.
+            <br><br>
+            Tip: refresh with cache-bust like <span class="k">?v=123</span>.
+          </div>
+        </div>
+
+        <div>
+          <label>Downloads</label>
+          <div id="downloads" class="list"></div>
+          <div class="log" id="debug">Debug:\n</div>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
-    const statusEl = document.getElementById("status");
-    const debugEl = document.getElementById("debug");
     const apiEl = document.getElementById("api");
     const fileEl = document.getElementById("file");
     const lengthEl = document.getElementById("length");
     const modeEl = document.getElementById("mode");
     const splitBtn = document.getElementById("split");
+    const clearBtn = document.getElementById("clear");
+    const checkBtn = document.getElementById("check");
+
+    const statusEl = document.getElementById("status");
+    const debugEl = document.getElementById("debug");
     const downloadsEl = document.getElementById("downloads");
 
-    function log(msg){ debugEl.textContent += msg + "\n"; }
-    function setStatus(msg){ statusEl.textContent = msg; log("[STATUS] " + msg); }
+    const pillApi = document.getElementById("pillApi");
+    const pillStatus = document.getElementById("pillStatus");
 
     let selectedFile = null;
 
-    fileEl.addEventListener("change", () => {
-      selectedFile = fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
-      splitBtn.disabled = !selectedFile;
-      setStatus(selectedFile ? ("Ready: " + selectedFile.name) : "Status: no file selected.");
+    function log(msg){
+      debugEl.textContent += msg + "\n";
+    }
+    function setStatus(msg){
+      statusEl.textContent = msg;
+      log("[STATUS] " + msg);
+    }
+
+    function normalizeBase(url){
+      let u = (url || "").trim();
+      // remove trailing slash
+      u = u.replace(/\/+$/, "");
+      return u;
+    }
+
+    function setPill(el, text, cls){
+      el.textContent = text;
+      el.className = "pill " + (cls || "");
+    }
+
+    window.addEventListener("error", (e) => setStatus("JS Error: " + (e.message || "unknown")));
+    window.addEventListener("unhandledrejection", (e) => {
+      const msg = e?.reason?.message ? e.reason.message : String(e.reason || e);
+      setStatus("Promise Error: " + msg);
     });
 
-    splitBtn.addEventListener("click", async () => {
-      if (!selectedFile) return;
-
+    function clearDownloads(){
       downloadsEl.innerHTML = "";
+    }
+
+    function makeDownloadLink(apiBase, name){
+      const a = document.createElement("a");
+      const clean = name.includes("__") ? name.split("__")[1] : name; // optional cleanup
+      a.textContent = "Download " + clean;
+      a.href = apiBase + "/download/" + encodeURIComponent(name);
+      a.target = "_blank";
+      a.rel = "noopener";
+      downloadsEl.appendChild(a);
+    }
+
+    async function pingAPI(){
+      const apiBase = normalizeBase(apiEl.value);
+      pillApi.textContent = "API: " + (apiBase || "missing");
+      if (!apiBase) {
+        setPill(pillStatus, "Status: no API URL", "bad");
+        return false;
+      }
+
+      setPill(pillStatus, "Status: checking…", "warn");
+      setStatus("Pinging API…");
+
+      try{
+        const res = await fetch(apiBase + "/", { method: "GET" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json().catch(()=> ({}));
+        setPill(pillStatus, "Status: online", "ok");
+        setStatus("API OK: " + JSON.stringify(data));
+        return true;
+      }catch(e){
+        setPill(pillStatus, "Status: offline / sleeping", "warn");
+        setStatus("API ping failed: " + (e.message || String(e)));
+        return false;
+      }
+    }
+
+    // retry helper (for sleeping space / 503)
+    async function fetchWithRetry(url, opts, tries = 3){
+      let lastErr = null;
+      for (let i=1; i<=tries; i++){
+        try{
+          const res = await fetch(url, opts);
+          if (res.status === 503){
+            // likely Space sleeping / rebuilding
+            setStatus("HTTP 503 (Space sleeping). Retrying… (" + i + "/" + tries + ")");
+            await new Promise(r => setTimeout(r, 1200 * i));
+            continue;
+          }
+          return res;
+        }catch(e){
+          lastErr = e;
+          setStatus("Network error. Retrying… (" + i + "/" + tries + ")");
+          await new Promise(r => setTimeout(r, 900 * i));
+        }
+      }
+      throw (lastErr || new Error("Request failed after retries"));
+    }
+
+    fileEl.addEventListener("change", () => {
+      selectedFile = fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
+      clearDownloads();
+
+      if (!selectedFile){
+        splitBtn.disabled = true;
+        setStatus("Status: no file selected.");
+        return;
+      }
+
+      splitBtn.disabled = false;
+      setStatus("Ready: " + selectedFile.name);
+    });
+
+    clearBtn.addEventListener("click", () => {
+      try { fileEl.value = ""; } catch {}
+      selectedFile = null;
       splitBtn.disabled = true;
+      clearDownloads();
+      setStatus("Status: cleared. Select a video.");
+    });
 
-      const API_BASE = apiEl.value.trim().replace(/\/+$/, "");
-      const segmentTime = parseInt(lengthEl.value || "30", 10);
-      const modeVal = modeEl.value || "fast";
+    checkBtn.addEventListener("click", pingAPI);
 
-      try {
+    // initial ping
+    (async () => {
+      const apiBase = normalizeBase(apiEl.value);
+      setPill(pillApi, "API: " + apiBase, apiBase ? "ok" : "bad");
+      await pingAPI();
+    })();
+
+    splitBtn.addEventListener("click", async () => {
+      clearDownloads();
+
+      const apiBase = normalizeBase(apiEl.value);
+      if (!apiBase){
+        setStatus("Error: API URL is missing.");
+        return;
+      }
+      if (!selectedFile){
+        setStatus("Error: choose a file first.");
+        return;
+      }
+
+      splitBtn.disabled = true;
+      const segmentSeconds = Math.min(Math.max(parseInt(lengthEl.value, 10) || 30, 1), 900);
+      const mode = modeEl.value || "fast";
+
+      // Wake space first (helps reduce 503)
+      await pingAPI();
+
+      try{
         setStatus("Uploading to server…");
 
         const form = new FormData();
         form.append("file", selectedFile);
 
-        const res = await fetch(`${API_BASE}/split?segment_seconds=${segmentTime}&mode=${modeVal}`, {
+        const url = `${apiBase}/split?segment_seconds=${encodeURIComponent(segmentSeconds)}&mode=${encodeURIComponent(mode)}`;
+
+        const res = await fetchWithRetry(url, {
           method: "POST",
           body: form
-        });
+        }, 4);
 
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
-
-        setStatus("Done. Clips ready.");
-
-
-(data.clips || []).forEach(name => {
-  const a = document.createElement("a");
-
-  const cleanName = name.includes("__") ? name.split("__")[1] : name;
-
-  a.textContent = "Download " + cleanName;
-  a.href = `${API_BASE}/download/${name}`;
-  a.download = cleanName;
-
-  downloadsEl.appendChild(a);
-});
-
-        document.getElementById("downloadAll").addEventListener("click", async () => {
-  if (!window.currentClips || !currentClips.length) {
-    alert("No clips yet.");
-    return;
-  }
-
-  const zip = new JSZip();
-
-  for (const name of currentClips) {
-    const res = await fetch(`${API_BASE}/download/${name}`);
-    const blob = await res.blob();
-    zip.file(name, blob);
-  }
-
-  const content = await zip.generateAsync({ type: "blob" });
-  const url = URL.createObjectURL(content);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "clips.zip";
-  a.click();
-});
-        
-        if (!data.clips || !data.clips.length) {
-          setStatus("Server returned no clips (try smaller file / different mode).");
+        if (!res.ok){
+          throw new Error(data?.detail || data?.error || ("HTTP " + res.status));
         }
 
-      } catch (e) {
+        const clips = Array.isArray(data.clips) ? data.clips : [];
+        if (!clips.length){
+          setStatus("Server returned no clips. Try a smaller file or different mode.");
+          return;
+        }
+
+        clips.forEach(name => makeDownloadLink(apiBase, name));
+        setStatus("Done. Clips ready.");
+      }catch(e){
         setStatus("Error: " + (e.message || String(e)));
-      } finally {
-        splitBtn.disabled = false;
+
+        // useful hint if it’s the Space, not your code
+        if (String(e.message || "").includes("503")){
+          log("[HINT] 503 usually means HuggingFace Space is sleeping, rebuilding, or crashed.");
+          log("[HINT] Open the Space → Settings → Restart Space / Factory rebuild, then try again.");
+        }
+      }finally{
+        splitBtn.disabled = !selectedFile;
       }
     });
-
-    setStatus("Status: page loaded. Select a video.");
-
-    document.getElementById("downloadAll").addEventListener("click", async () => {
-  if (!window.currentClips || !currentClips.length) {
-    alert("No clips yet.");
-    return;
-  }
-
-  const zip = new JSZip();
-
-  for (const name of currentClips) {
-    const res = await fetch(`${API_BASE}/download/${name}`);
-    const blob = await res.blob();
-    zip.file(name, blob);
-  }
-
-  const content = await zip.generateAsync({ type: "blob" });
-  const url = URL.createObjectURL(content);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "clips.zip";
-  a.click();
-});
-
-    
   </script>
 </body>
-</html>
+    </html>
