@@ -282,6 +282,7 @@
 
         clips.forEach(name => makeDownloadLink(apiBase, name));
         setStatus("Done. Clips ready.");
+        document.getElementById("downloadAll").style.display = "block";
       }catch(e){
         setStatus("Error: " + (e.message || String(e)));
 
