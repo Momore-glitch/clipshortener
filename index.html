@@ -37,6 +37,8 @@
     .small{font-size:12px;color:var(--muted);line-height:1.35;margin-top:10px}
     .k{font-family:ui-monospace,Menlo,Monaco,Consolas,monospace}
   </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
 
 <body>
@@ -280,7 +282,8 @@
           return;
         }
 
-        clips.forEach(name => makeDownloadLink(apiBase, name));
+        window.lastClips = clips;
+clips.forEach(name => makeDownloadLink(apiBase, name));
         setStatus("Done. Clips ready.");
         document.getElementById("downloadAll").style.display = "block";
       }catch(e){
@@ -295,6 +298,39 @@
         splitBtn.disabled = !selectedFile;
       }
     });
+
+    document.getElementById("downloadAll").addEventListener("click", async () => {
+  if (!window.lastClips || !window.lastClips.length) {
+    alert("No clips to download.");
+    return;
+  }
+
+  const apiBase = apiEl.value.replace(/\/+$/, "");
+  const zip = new JSZip();
+
+  setStatus("Creating ZIP…");
+
+  for (const name of window.lastClips) {
+    const res = await fetch(`${apiBase}/download/${encodeURIComponent(name)}`);
+    if (!res.ok) {
+      setStatus("Failed to fetch " + name);
+      return;
+    }
+    const blob = await res.blob();
+    const clean = name.includes("__") ? name.split("__")[1] : name;
+    zip.file(clean, blob);
+  }
+
+  const content = await zip.generateAsync({ type: "blob" });
+  const url = URL.createObjectURL(content);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "clips.zip";
+  a.click();
+
+  setStatus("ZIP downloaded.");
+});
   </script>
 </body>
     </html>
