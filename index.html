@@ -326,7 +326,11 @@ clips.forEach(name => makeDownloadLink(apiBase, name));
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = "clips.zip";
+  const baseName = selectedFile
+  ? selectedFile.name.replace(/\.[^/.]+$/, "")
+  : "clips";
+
+a.download = baseName + "_clips.zip";
   a.click();
 
   setStatus("ZIP downloaded.");
