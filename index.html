@@ -225,6 +225,7 @@
       try { fileEl.value = ""; } catch {}
       selectedFile = null;
       splitBtn.disabled = true;
+      document.getElementById("downloadAll").style.display = "none";
       clearDownloads();
       setStatus("Status: cleared. Select a video.");
     });
@@ -335,6 +336,7 @@ a.download = baseName + "_clips.zip";
 
   setStatus("ZIP downloaded.");
 });
+    document.getElementById("downloadAll").style.display = "none";
   </script>
 </body>
     </html>
