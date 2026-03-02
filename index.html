@@ -95,6 +95,7 @@
           <button id="downloadAll" class="ghost" style="margin-top:10px; display:none;">
   Download all clips
           </button>
+          <button id="wake" class="ghost" type="button">Wake backend</button>
           <div id="downloads" class="list"></div>
           <div class="log" id="debug">Debug:\n</div>
         </div>
@@ -229,6 +230,18 @@
       clearDownloads();
       setStatus("Status: cleared. Select a video.");
     });
+    document.getElementById("wake").addEventListener("click", async () => {
+  const apiBase = apiEl.value.trim().replace(/\/+$/, "");
+  setStatus("Waking backend…");
+
+  try {
+    const res = await fetch(apiBase + "/", { method: "GET" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    setStatus("Backend is awake ✅");
+  } catch (e) {
+    setStatus("Wake failed: " + (e.message || String(e)));
+  }
+});
 
     checkBtn.addEventListener("click", pingAPI);
 
