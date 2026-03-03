@@ -73,6 +73,13 @@
             <option value="fast" selected>fast</option>
             <option value="accurate">accurate</option>
           </select>
+          <label style="margin-top:12px; display:flex; gap:10px; align-items:center;">
+  <input id="socialPreset" type="checkbox" style="width:auto; margin:0;">
+  Social preset (recommended)
+</label>
+<div class="small" style="margin-top:6px;color:#9ca3af;">
+  Sets 60s clips + accurate mode (best for TikTok/IG).
+  </div>
 
           <div class="actions">
             <button id="split" disabled>Split video</button>
@@ -251,6 +258,17 @@
       setPill(pillApi, "API: " + apiBase, apiBase ? "ok" : "bad");
       await pingAPI();
     })();
+    const socialPresetEl = document.getElementById("socialPreset");
+
+socialPresetEl.addEventListener("change", () => {
+  if (!socialPresetEl.checked) return;
+
+  // Best defaults for short-form workflow
+  lengthEl.value = "60";
+  modeEl.value = "accurate";
+
+  setStatus("Social preset applied: 60s + accurate");
+});
 
     splitBtn.addEventListener("click", async () => {
       clearDownloads();
