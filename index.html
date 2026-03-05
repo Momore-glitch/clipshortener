@@ -98,10 +98,60 @@
     .rowline input[type="checkbox"]{width:auto;margin:0;transform:scale(1.1)}
     .smallbtn{padding:10px;border-radius:12px}
     .k{font-family:ui-monospace,Menlo,Monaco,Consolas,monospace}
+    /* --- Milky Way (reddish-purple) interactive background --- */
+.mw-bg{
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+  background:
+    radial-gradient(1200px 800px at 20% 10%, rgba(255, 70, 150, .18), transparent 55%),
+    radial-gradient(1000px 700px at 80% 20%, rgba(140, 80, 255, .18), transparent 55%),
+    radial-gradient(900px 700px at 60% 90%, rgba(255, 120, 80, .10), transparent 60%),
+    #070810;
+}
+
+.mw-stars, .mw-nebula{
+  position:absolute;
+  inset:-20%;
+  will-change: transform;
+  pointer-events:none;
+}
+
+.mw-stars{
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,.7) 40%, transparent 41%),
+    radial-gradient(1px 1px at 30% 80%, rgba(255,255,255,.55) 40%, transparent 41%),
+    radial-gradient(1px 1px at 55% 35%, rgba(255,255,255,.6) 40%, transparent 41%),
+    radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,.55) 40%, transparent 41%),
+    radial-gradient(1px 1px at 85% 30%, rgba(255,255,255,.45) 40%, transparent 41%),
+    radial-gradient(1px 1px at 90% 75%, rgba(255,255,255,.5) 40%, transparent 41%);
+  background-size: 220px 220px;
+  opacity:.55;
+  filter: blur(.1px);
+}
+
+.mw-nebula{
+  background:
+    radial-gradient(600px 400px at 30% 40%, rgba(255, 70, 150, .22), transparent 60%),
+    radial-gradient(650px 420px at 70% 50%, rgba(140, 80, 255, .22), transparent 62%),
+    radial-gradient(520px 360px at 55% 65%, rgba(255, 150, 90, .12), transparent 65%);
+  mix-blend-mode: screen;
+  opacity:.75;
+  filter: blur(18px) saturate(1.15);
+}
+
+@media (prefers-reduced-motion: reduce){
+  .mw-stars, .mw-nebula{ transform:none !important; }
+    }
   </style>
 </head>
 
 <body>
+  <div class="mw-bg" aria-hidden="true">
+  <div class="mw-nebula" id="mwNebula"></div>
+  <div class="mw-stars" id="mwStars"></div>
+  </div>
   <div class="wrap">
     <div class="topbar">
       <div class="brand">
@@ -214,7 +264,33 @@
     const pillApi = document.getElementById("pillApi");
     const pillLive = document.getElementById("pillLive");
     const pillZip = document.getElementById("pillZip");
+// --- Interactive parallax for Milky Way background ---
+(() => {
+  const neb = document.getElementById("mwNebula");
+  const stars = document.getElementById("mwStars");
+  if (!neb || !stars) return;
 
+  let x = 0, y = 0, tx = 0, ty = 0;
+
+  function onMove(e){
+    const p = e.touches ? e.touches[0] : e;
+    const cx = (p.clientX / window.innerWidth) - 0.5;
+    const cy = (p.clientY / window.innerHeight) - 0.5;
+    tx = cx; ty = cy;
+  }
+
+  window.addEventListener("mousemove", onMove, { passive: true });
+  window.addEventListener("touchmove", onMove, { passive: true });
+
+  function tick(){
+    x += (tx - x) * 0.06;
+    y += (ty - y) * 0.06;
+    stars.style.transform = `translate3d(${x * 18}px, ${y * 18}px, 0)`;
+    neb.style.transform   = `translate3d(${x * 28}px, ${y * 28}px, 0)`;
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
     // ---------- State ----------
     let selectedFile = null;
     window.lastClips = [];
