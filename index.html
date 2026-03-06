@@ -1,6 +1,13 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <header class="brand-header">
+  <div class="brand-logo">✦</div>
+  <div class="brand-text">
+    <h1>ClipShortener</h1>
+    <p>Turn long videos into social-ready clips instantly</p>
+  </div>
+  </header>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ClipShortener</title>
@@ -144,6 +151,45 @@
 @media (prefers-reduced-motion: reduce){
   .mw-stars, .mw-nebula{ transform:none !important; }
     }
+    /* ---------- Branding ---------- */
+
+.brand-header{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-bottom:28px;
+}
+
+.brand-logo{
+  width:48px;
+  height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+
+  border-radius:12px;
+
+  background:linear-gradient(135deg,#ff4fa3,#7c5cff);
+  color:white;
+
+  box-shadow:
+    0 0 12px rgba(255,79,163,.5),
+    0 0 22px rgba(124,92,255,.35);
+}
+
+.brand-text h1{
+  margin:0;
+  font-size:28px;
+  font-weight:700;
+  letter-spacing:.5px;
+}
+
+.brand-text p{
+  margin:2px 0 0;
+  font-size:14px;
+  color:#a7a7c7;
+                    }
   </style>
 </head>
 
