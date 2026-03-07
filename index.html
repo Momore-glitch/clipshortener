@@ -151,6 +151,34 @@ button:disabled{
     .rowline input[type="checkbox"]{width:auto;margin:0;transform:scale(1.1)}
     .smallbtn{padding:10px;border-radius:12px}
     .k{font-family:ui-monospace,Menlo,Monaco,Consolas,monospace}
+    .drop-zone{
+  margin-top:10px;
+  padding:30px 20px;
+
+  border:2px dashed rgba(255,255,255,.15);
+  border-radius:16px;
+
+  text-align:center;
+  color:#cfcfe8;
+
+  background:rgba(0,0,0,.25);
+
+  transition:all .2s ease;
+}
+
+.drop-zone:hover{
+  border-color:#8b5cf6;
+  background:rgba(0,0,0,.35);
+}
+
+.drop-zone.drag{
+  border-color:#ff4fa3;
+  background:rgba(255,79,163,.08);
+}
+
+.drop-zone input{
+  display:none;
+}
     /* --- Milky Way (reddish-purple) interactive background --- */
 .mw-bg{
   position: fixed;
@@ -278,7 +306,10 @@ button:disabled{
           </div>
 
           <label>Upload video</label>
+          <div id="dropZone" class="drop-zone">
+  <p>Drop video here or click to upload</p>
           <input id="file" type="file" accept="video/*" />
+          </div>
 
           <div class="rowline">
             <input id="socialPreset" type="checkbox" />
@@ -356,6 +387,33 @@ button:disabled{
     const pillApi = document.getElementById("pillApi");
     const pillLive = document.getElementById("pillLive");
     const pillZip = document.getElementById("pillZip");
+    const dropZone = document.getElementById("dropZone");
+
+["dragenter","dragover"].forEach(e=>{
+  dropZone.addEventListener(e,(ev)=>{
+    ev.preventDefault();
+    dropZone.classList.add("drag");
+  });
+});
+
+["dragleave","drop"].forEach(e=>{
+  dropZone.addEventListener(e,(ev)=>{
+    ev.preventDefault();
+    dropZone.classList.remove("drag");
+  });
+});
+
+dropZone.addEventListener("drop",(ev)=>{
+  const files = ev.dataTransfer.files;
+  if(files.length){
+    fileEl.files = files;
+    fileEl.dispatchEvent(new Event("change"));
+  }
+});
+
+dropZone.addEventListener("click",()=>{
+  fileEl.click();
+});
 // --- Interactive parallax for Milky Way background ---
 (() => {
   const neb = document.getElementById("mwNebula");
