@@ -66,6 +66,21 @@
   transition: all .25s ease;
 }
 
+    .loader{
+  margin:20px auto;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+
+  border:3px solid rgba(255,255,255,.15);
+  border-top:3px solid #ff4fa3;
+
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+  to{ transform:rotate(360deg); }
+      }
 .card:hover{
   transform:translateY(-2px);
   box-shadow:
@@ -337,7 +352,8 @@ button:disabled{
             <button id="split" disabled>Split video</button>
             <button id="downloadAll" class="ghost" type="button" style="display:none">Download all (ZIP)</button>
           </div>
-
+          
+<div id="loader" class="loader" style="display:none;"></div>
           <div class="log" id="status">Status: page loaded. Select a video.</div>
 
           <div class="hint">
@@ -589,6 +605,7 @@ dropZone.addEventListener("click",()=>{
         const segmentSeconds = Math.min(Math.max(parseInt(lengthEl.value || "30",10) || 30, 1), 900);
         const modeVal = (modeEl.value || "fast").toLowerCase();
 
+      document.getElementById("loader").style.display = "block";
         setStatus("Uploading to server…");
 
         const form = new FormData();
@@ -619,6 +636,9 @@ dropZone.addEventListener("click",()=>{
         setStatus("Error: " + (e.message || String(e)));
         log("[HINT] If you keep seeing 503, open the HF Space and Restart/Factory rebuild.");
       }finally{
+
+    document.getElementById("loader").style.display = "none";
+        
         splitBtn.disabled = false;
         splitBtn.textContent = oldLabel;
       }
