@@ -456,6 +456,7 @@ button:disabled{
 
           <div class="actions">
             <button id="split" disabled>Split video</button>
+            let processing = false;
             <button id="downloadAll" class="ghost" type="button" style="display:none">Download all (ZIP)</button>
           </div>
           
@@ -588,6 +589,34 @@ dropZone.addEventListener("click",()=>{
     setPill(pillZip, window.JSZip ? "ZIP: loaded" : "ZIP: missing", window.JSZip ? "ok" : "bad");
 
     // ---------- Backend ping / wake ----------
+    async function splitVideo() {
+
+if (processing) return;
+
+processing = true;
+
+try {
+
+const file = document.getElementById("videoInput").files[0];
+
+if (!file) {
+alert("Please select a video first");
+processing = false;
+return;
+}
+
+// your upload logic here
+
+}
+catch(err){
+console.error(err);
+alert("Something went wrong");
+}
+finally{
+processing = false;
+}
+
+    }
     async function pingAPI(showStatus=true){
       const apiBase = normalizeBase(apiEl.value);
       setPill(pillApi, "API: " + (apiBase || "missing"), apiBase ? "ok" : "bad");
