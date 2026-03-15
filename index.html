@@ -1,842 +1,351 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <header class="brand-header">
-    <section class="hero">
-  <h2>Turn long videos into viral short clips</h2>
-  <p>Upload a video → choose clip length → download ready-to-post clips for TikTok, Reels, and Shorts.</p>
-    </section>
-  <div class="brand-logo">✦</div>
-    <link rel="icon" type="image/png" href="file_00000000c924720a899c522f94bbe21b.png">
-  <div class="brand-text">
-    <h1>ClipShortener</h1>
-    <p>Turn long videos into social-ready clips instantly</p>
-  </div>
-  </header>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ClipShortener</title>
-  <meta name="description" content="Upload a video, split into clips, download individually or as a ZIP. Server-powered." />
-<meta name="description" content="Free tool that turns long videos into ready-to-post clips for TikTok, Instagram Reels, and YouTube Shorts. Upload a video, choose clip length, download instantly.">
 
-<meta property="og:title" content="ClipShortener – Turn long videos into short clips instantly">
-<meta property="og:description" content="Upload a video and automatically split it into ready-to-post clips for TikTok, Reels and Shorts.">
-<meta property="og:type" content="website">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta property="og:url" content="https://momray.github.io/clipshortener">
+<title>ClipShortener</title>
 
-<meta property="og:image" content="https://YOURUSERNAME.github.io/YOURREPOSITORY/preview.png">
+<meta name="description" content="Turn long videos into short clips instantly for TikTok, Reels and Shorts.">
 
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="ClipShortener – Automatic Video Clip Tool">
-<meta name="twitter:description" content="Turn one long video into multiple short clips instantly.">
-  <!-- ZIP library -->
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<meta property="og:title" content="ClipShortener">
+<meta property="og:description" content="Turn long videos into short clips instantly">
+<meta property="og:image" content="preview.png">
 
-  <style>
-    :root{
-      --bg:#0b0f17;
-      --card:rgba(255,255,255,.04);
-      --text:#e5e7eb;
-      --muted:#9ca3af;
-      --line:#243042;
-      --field:#0b0f17;
-      --good:#34d399;
-      --warn:#fbbf24;
-      --bad:#fb7185; 
-      --shadow: 0 12px 30px rgba(0,0,0,.35);
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background: radial-gradient(900px 600px at 20% 0%, rgba(99,102,241,.18), transparent 60%),
-                  radial-gradient(700px 500px at 85% 10%, rgba(16,185,129,.12), transparent 60%),
-                  var(--bg);
-      color:var(--text);
-    }
-    .wrap{width:min(980px,92vw);margin:0 auto;padding:18px 0 28px}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-    .brand{display:flex;align-items:center;gap:10px}
-    .logo{
-      width:40px;height:40px;border-radius:12px;
-      background:linear-gradient(135deg, rgba(99,102,241,.9), rgba(16,185,129,.85));
-      box-shadow: var(--shadow);
-    }
-    .title{display:flex;flex-direction:column;line-height:1.05}
-    .title b{font-size:16px}
-    .title span{font-size:12px;color:var(--muted)}
-    .card{
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:20px;
-  padding:20px;
+<link rel="icon" type="image/png" href="favicon.png">
 
-  background:rgba(15,15,25,.55);
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+<style>
 
-  box-shadow:
-    0 10px 30px rgba(0,0,0,.4),
-    inset 0 0 0 1px rgba(255,255,255,.03);
-
-  transition: all .25s ease;
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Poppins;
 }
 
-    .hero{
-  margin-bottom:26px;
-  padding:18px 20px;
+body{
 
-  border-radius:16px;
+background: radial-gradient(circle at center, #3b0047, #120016 70%);
+color:white;
+min-height:100vh;
+display:flex;
+flex-direction:column;
+align-items:center;
 
-  background:rgba(255,255,255,.04);
-
-  border:1px solid rgba(255,255,255,.06);
-
-  backdrop-filter: blur(10px);
 }
 
-.hero h2{
-  margin:0 0 6px 0;
-  font-size:22px;
-  font-weight:700;
+header{
+
+width:100%;
+padding:25px;
+text-align:center;
+font-size:28px;
+font-weight:600;
+
+background:linear-gradient(90deg,#ff3ad4,#9d4dff);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+
+}
+
+.hero{
+
+text-align:center;
+max-width:700px;
+margin-top:20px;
+
+}
+
+.hero h1{
+
+font-size:34px;
+margin-bottom:10px;
+
 }
 
 .hero p{
-  margin:0;
-  font-size:14px;
-  color:#bdbddd;
-                                                               }
 
-    .loader{
-  margin:20px auto;
-  width:42px;
-  height:42px;
-  border-radius:50%;
+opacity:0.8;
+margin-bottom:30px;
 
-  border:3px solid rgba(255,255,255,.15);
-  border-top:3px solid #ff4fa3;
-
-  animation:spin 1s linear infinite;
 }
 
-@keyframes spin{
-  to{ transform:rotate(360deg); }
-      }
-.card:hover{
-  transform:translateY(-2px);
-  box-shadow:
-    0 18px 40px rgba(0,0,0,.5),
-    inset 0 0 0 1px rgba(255,255,255,.05);
-      }
-    .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:12px}
-    @media(min-width:900px){.grid{grid-template-columns:1.05fr .95fr;align-items:start}}
-    label{display:block;margin-top:10px;font-size:12px;color:var(--muted)}
-    input,select,button{
-      width:100%;
-      margin-top:6px;
-      padding:12px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:var(--field);
-      color:var(--text);
-      font-size:16px;
-      outline:none;
-    }
-    input,select{
-  width:100%;
-  padding:12px 14px;
+.container{
 
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.08);
+background:rgba(255,255,255,0.05);
+border-radius:16px;
+padding:30px;
+width:90%;
+max-width:650px;
 
-  background:rgba(0,0,0,.35);
-  color:#fff;
+backdrop-filter: blur(10px);
 
-  font-size:15px;
+box-shadow:0 10px 40px rgba(0,0,0,0.4);
 
-  transition:all .2s ease;
 }
 
-input:focus,select:focus{
-  border-color:#8b5cf6;
-  box-shadow:0 0 0 2px rgba(139,92,246,.25);
-      }
-    button{min-height:44px;
-  padding:12px 16px;
-  border-radius:12px;
+.upload-area{
 
-  border:none;
-  font-weight:600;
+border:2px dashed rgba(255,255,255,0.3);
+padding:35px;
+border-radius:10px;
+text-align:center;
+cursor:pointer;
 
-  cursor:pointer;
+transition:0.3s;
 
-  background:linear-gradient(135deg,#ff4fa3,#7c5cff);
-  color:white;
+}
 
-  transition:all .18s ease;
+.upload-area:hover{
+
+border-color:#ff5cf7;
+
+}
+
+input[type=file]{
+display:none;
+}
+
+button{
+
+margin-top:20px;
+
+background:linear-gradient(45deg,#ff2fd2,#7d55ff);
+
+border:none;
+color:white;
+
+padding:14px 30px;
+border-radius:10px;
+
+font-size:16px;
+
+cursor:pointer;
+
+transition:0.3s;
+
 }
 
 button:hover{
-  transform:translateY(-1px);
-  box-shadow:
-    0 6px 20px rgba(124,92,255,.35);
+
+transform:scale(1.05);
+
 }
 
 button:disabled{
-  opacity:.55;
-  cursor:not-allowed;
-}
 
-.ghost{
-  background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.1);
-  }
-    .ok{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)}
-    .log{
-      margin-top:12px;padding:12px;border:1px solid var(--line);
-      border-radius:12px;background:rgba(0,0,0,.22);
-      color:var(--muted);font-size:13px;white-space:pre-wrap
-    }
-    .list a{
-      display:block;margin-top:10px;padding:12px;border:1px solid var(--line);
-      border-radius:12px;text-decoration:none;color:var(--text);
-      background:rgba(0,0,0,.18)
-    }
-    .hint{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.35}
-    .rowline{display:flex;gap:10px;align-items:center;margin-top:10px}
-    .rowline input[type="checkbox"]{width:auto;margin:0;transform:scale(1.1)}
-    .smallbtn{padding:10px;border-radius:12px}
-    .k{font-family:ui-monospace,Menlo,Monaco,Consolas,monospace}
-    .drop-zone{
-  margin-top:10px;
-  padding:30px 20px;
-
-  border:2px dashed rgba(255,255,255,.15);
-  border-radius:16px;
-
-  text-align:center;
-  color:#cfcfe8;
-
-  background:rgba(0,0,0,.25);
-
-  transition:all .2s ease;
-}
-
-.drop-zone:hover{
-  border-color:#8b5cf6;
-  background:rgba(0,0,0,.35);
-}
-
-.drop-zone.drag{
-  border-color:#ff4fa3;
-  background:rgba(255,79,163,.08);
-}
-
-.drop-zone input{
-  display:none;
-}
-    /* --- Milky Way (reddish-purple) interactive background --- */
-.mw-bg{
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  overflow: hidden;
-  background:
-    radial-gradient(1200px 800px at 20% 10%, rgba(255, 70, 150, .18), transparent 55%),
-    radial-gradient(1000px 700px at 80% 20%, rgba(140, 80, 255, .18), transparent 55%),
-    radial-gradient(900px 700px at 60% 90%, rgba(255, 120, 80, .10), transparent 60%),
-    #070810;
-}
-
-.mw-stars, .mw-nebula{
-  position:absolute;
-  inset:-20%;
-  will-change: transform;
-  pointer-events:none;
-}
-
-.mw-stars{
-  background-image:
-    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,.7) 40%, transparent 41%),
-    radial-gradient(1px 1px at 30% 80%, rgba(255,255,255,.55) 40%, transparent 41%),
-    radial-gradient(1px 1px at 55% 35%, rgba(255,255,255,.6) 40%, transparent 41%),
-    radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,.55) 40%, transparent 41%),
-    radial-gradient(1px 1px at 85% 30%, rgba(255,255,255,.45) 40%, transparent 41%),
-    radial-gradient(1px 1px at 90% 75%, rgba(255,255,255,.5) 40%, transparent 41%);
-  background-size: 220px 220px;
-  opacity:.55;
-  filter: blur(.1px);
-}
-
-.mw-nebula{
-  background:
-    radial-gradient(600px 400px at 30% 40%, rgba(255, 70, 150, .22), transparent 60%),
-    radial-gradient(650px 420px at 70% 50%, rgba(140, 80, 255, .22), transparent 62%),
-    radial-gradient(520px 360px at 55% 65%, rgba(255, 150, 90, .12), transparent 65%);
-  mix-blend-mode: screen;
-  opacity:.75;
-  filter: blur(18px) saturate(1.15);
-}
-
-@media (prefers-reduced-motion: reduce){
-  .mw-stars, .mw-nebula{ transform:none !important; }
-    }
-    /* ---------- Branding ---------- */
-
-.brand-header{
-  display:flex;
-  align-items:center;
-  gap:16px;
-  margin-bottom:28px;
-}
-
-.brand-logo{
-  width:48px;
-  height:48px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
-
-  border-radius:12px;
-
-  background:linear-gradient(135deg,#ff4fa3,#7c5cff);
-  color:white;
-
-  box-shadow:
-    0 0 12px rgba(255,79,163,.5),
-    0 0 22px rgba(124,92,255,.35);
-}
-
-.brand-text h1{
-  margin:0;
-  font-size:28px;
-  font-weight:700;
-  letter-spacing:.5px;
-}
-
-.brand-text p{
-  margin:2px 0 0;
-  font-size:14px;
-  color:#a7a7c7;
-                    }
-    /* -------- Mobile Optimization -------- */
-
-@media (max-width:700px){
-
-  .wrap{
-    width:94vw;
-    padding-top:10px;
-  }
-
-  .topbar{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:8px;
-  }
-
-  .brand-text h1{
-    font-size:22px;
-  }
-
-  .brand-text p{
-    font-size:13px;
-  }
-
-  .grid{
-    grid-template-columns:1fr;
-  }
-
-  .actions{
-    flex-direction:column;
-  }
-
-  .actions button{
-    width:100%;
-  }
-
-  .drop-zone{
-    padding:26px 16px;
-    font-size:14px;
-  }
-
-  input,select{
-    font-size:16px;
-  }
+opacity:0.5;
+cursor:not-allowed;
 
 }
-    .site-footer{
-  margin-top:40px;
-  padding:20px;
-  text-align:center;
 
-  color:#9aa0c3;
-  font-size:13px;
+.loader{
 
-  border-top:1px solid rgba(255,255,255,.08);
+display:none;
+margin-top:20px;
 
-  background:rgba(0,0,0,.2);
-  backdrop-filter: blur(6px);
 }
 
-.site-footer p{
-  margin:4px 0;
+.clips{
+
+margin-top:30px;
+
 }
 
-    
-  </style>
+.clip{
+
+background:rgba(255,255,255,0.05);
+padding:15px;
+border-radius:8px;
+margin-bottom:15px;
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+
+}
+
+footer{
+
+margin-top:40px;
+opacity:0.5;
+font-size:14px;
+padding-bottom:20px;
+
+}
+
+@media(max-width:600px){
+
+.hero h1{
+font-size:26px;
+}
+
+.container{
+padding:20px;
+}
+
+}
+
+</style>
+
 </head>
 
 <body>
-  <div class="mw-bg" aria-hidden="true">
-  <div class="mw-nebula" id="mwNebula"></div>
-  <div class="mw-stars" id="mwStars"></div>
-  </div>
-  <div class="wrap">
-    <div class="topbar">
-      <div class="brand">
-        <div class="logo"></div>
-        <div class="title">
-          <b>ClipShortener</b>
-          <span>Server split • video-only • fast downloads</span>
-        </div>
-      </div>
-      <div class="hint" style="text-align:right;max-width:360px">
-        Tip: refresh with <span class="k">?v=123</span> if you don’t see updates.
-      </div>
-    </div>
 
-    <div class="card">
-      <div class="pillrow">
-        <span class="pill" id="pillApi">API: …</span>
-        <span class="pill" id="pillLive">Backend: …</span>
-        <span class="pill" id="pillZip">ZIP: …</span>
-      </div>
+<header>
 
-      <div class="grid">
-        <!-- LEFT -->
-        <div>
-          <label>Backend API (your HuggingFace Space)</label>
-          <input id="api" spellcheck="false" value="https://mrayz-clipshortener-api.hf.space" />
+ClipShortener
 
-          <div class="actions">
-            <button id="wake" class="ghost" type="button">Wake backend</button>
-            <button id="ping" class="ghost" type="button">Ping API</button>
-            <button id="clear" class="ghost" type="button">Clear</button>
-          </div>
+</header>
 
-          <label>Upload video</label>
-          <div id="dropZone" class="drop-zone">
-  <p>Drop video here or click to upload</p>
-          <input id="file" type="file" accept="video/*" />
-          </div>
+<div class="hero">
 
-          <div class="rowline">
-            <input id="socialPreset" type="checkbox" />
-            <div class="hint" style="margin:0">
-              <b>Social preset</b> (recommended): sets <b>60s</b> + <b>accurate</b>
-            </div>
-          </div>
+<h1>Turn long videos into short clips instantly</h1>
 
-          <label>Clip length</label>
-          <select id="length">
-            <option value="15">15 seconds</option>
-            <option value="30" selected>30 seconds</option>
-            <option value="60">60 seconds</option>
-            <option value="300">5 minutes</option>
-            <option value="900">15 minutes (max)</option>
-          </select>
+<p>Perfect for TikTok • Reels • Shorts</p>
 
-          <label>Mode</label>
-          <select id="mode">
-            <option value="fast" selected>fast (quickest)</option>
-            <option value="accurate">accurate (clean cuts)</option>
-          </select>
+</div>
 
-          <div class="actions">
-            <button id="split" disabled>Split video</button>
-            let processing = false;
-            <button id="downloadAll" class="ghost" type="button" style="display:none">Download all (ZIP)</button>
-          </div>
-          
-<div id="loader" class="loader" style="display:none;"></div>
-          <div class="log" id="status">Status: page loaded. Select a video.</div>
+<div class="container">
 
-          <div class="hint">
-            If you see <b>HTTP 503</b>: your HuggingFace Space is sleeping or restarting.
-            Use <b>Wake backend</b> then try again.
-          </div>
-        </div>
+<label class="upload-area">
 
-        <!-- RIGHT -->
-        <div>
-          <label>Downloads</label>
-          <div id="downloads" class="list"></div>
-          <div class="log" id="debug">Debug:\n</div>
-        </div>
-      </div>
-    </div>
-  </div>
+<input id="videoInput" type="file" accept="video/*">
 
-  <script>
-    // ---------- Safe error surfacing ----------
-    const statusEl = document.getElementById("status");
-    const debugEl = document.getElementById("debug");
-    function log(msg){ debugEl.textContent += msg + "\n"; }
-    function setStatus(msg){ statusEl.textContent = msg; log("[STATUS] " + msg); }
+<p>Select a video file</p>
 
-    window.onerror = (msg, src, line, col) => {
-      setStatus(`JS ERROR: ${msg} @${line}:${col}`);
-    };
-    window.onunhandledrejection = (e) => {
-      const m = e?.reason?.message ? e.reason.message : String(e?.reason || e);
-      setStatus("PROMISE ERROR: " + m);
-    };
+</label>
 
-    // ---------- Elements ----------
-    const apiEl = document.getElementById("api");
-    const fileEl = document.getElementById("file");
-    const lengthEl = document.getElementById("length");
-    const modeEl = document.getElementById("mode");
-    const splitBtn = document.getElementById("split");
-    const clearBtn = document.getElementById("clear");
-    const pingBtn = document.getElementById("ping");
-    const wakeBtn = document.getElementById("wake");
-    const downloadsEl = document.getElementById("downloads");
-    const zipBtn = document.getElementById("downloadAll");
-    const socialPresetEl = document.getElementById("socialPreset");
+<button id="splitBtn">
 
-    const pillApi = document.getElementById("pillApi");
-    const pillLive = document.getElementById("pillLive");
-    const pillZip = document.getElementById("pillZip");
-    const dropZone = document.getElementById("dropZone");
+Split Video
 
-["dragenter","dragover"].forEach(e=>{
-  dropZone.addEventListener(e,(ev)=>{
-    ev.preventDefault();
-    dropZone.classList.add("drag");
-  });
-});
+</button>
 
-["dragleave","drop"].forEach(e=>{
-  dropZone.addEventListener(e,(ev)=>{
-    ev.preventDefault();
-    dropZone.classList.remove("drag");
-  });
-});
+<div class="loader" id="loader">
 
-dropZone.addEventListener("drop",(ev)=>{
-  const files = ev.dataTransfer.files;
-  if(files.length){
-    fileEl.files = files;
-    fileEl.dispatchEvent(new Event("change"));
-  }
-});
+Processing video...
 
-dropZone.addEventListener("click",()=>{
-  fileEl.click();
-});
-// --- Interactive parallax for Milky Way background ---
-(() => {
-  const neb = document.getElementById("mwNebula");
-  const stars = document.getElementById("mwStars");
-  if (!neb || !stars) return;
+</div>
 
-  let x = 0, y = 0, tx = 0, ty = 0;
+<div class="clips" id="clips">
 
-  function onMove(e){
-    const p = e.touches ? e.touches[0] : e;
-    const cx = (p.clientX / window.innerWidth) - 0.5;
-    const cy = (p.clientY / window.innerHeight) - 0.5;
-    tx = cx; ty = cy;
-  }
+</div>
 
-  window.addEventListener("mousemove", onMove, { passive: true });
-  window.addEventListener("touchmove", onMove, { passive: true });
+</div>
 
-  function tick(){
-    x += (tx - x) * 0.06;
-    y += (ty - y) * 0.06;
-    stars.style.transform = `translate3d(${x * 18}px, ${y * 18}px, 0)`;
-    neb.style.transform   = `translate3d(${x * 28}px, ${y * 28}px, 0)`;
-    requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-})();
-    // ---------- State ----------
-    let selectedFile = null;
-    window.lastClips = [];
+<footer>
 
-    // ---------- Helpers ----------
-    function normalizeBase(url){
-      return (url || "").trim().replace(/\/+$/, "");
-    }
-    function setPill(el, text, cls){
-      el.textContent = text;
-      el.className = "pill " + (cls || "");
-    }
-    function cleanName(name){
-      return name.includes("__") ? name.split("__")[1] : name;
-    }
-    function clearDownloads(){
-      downloadsEl.innerHTML = "";
-      window.lastClips = [];
-      zipBtn.style.display = "none";
-    }
+© 2026 ClipShortener
 
-    // JSZip presence
-    setPill(pillZip, window.JSZip ? "ZIP: loaded" : "ZIP: missing", window.JSZip ? "ok" : "bad");
+</footer>
 
-    // ---------- Backend ping / wake ----------
-    async function splitVideo() {
+<script>
 
-if (processing) return;
+let processing=false
 
-processing = true;
+const button=document.getElementById("splitBtn")
+const loader=document.getElementById("loader")
+const clipsContainer=document.getElementById("clips")
 
-try {
+button.addEventListener("click",splitVideo)
 
-const file = document.getElementById("videoInput").files[0];
+async function splitVideo(){
 
-if (!file) {
-alert("Please select a video first");
-processing = false;
-return;
+if(processing) return
+
+const file=document.getElementById("videoInput").files[0]
+
+if(!file){
+
+alert("Please upload a video first")
+
+return
+
 }
 
-// your upload logic here
+processing=true
+
+button.disabled=true
+loader.style.display="block"
+
+clipsContainer.innerHTML=""
+
+try{
+
+await simulateProcessing(file)
 
 }
 catch(err){
-console.error(err);
-alert("Something went wrong");
+
+alert("Processing failed")
+
+console.error(err)
+
 }
 finally{
-processing = false;
+
+processing=false
+
+button.disabled=false
+loader.style.display="none"
+
 }
 
-    }
-    async function pingAPI(showStatus=true){
-      const apiBase = normalizeBase(apiEl.value);
-      setPill(pillApi, "API: " + (apiBase || "missing"), apiBase ? "ok" : "bad");
-      if (!apiBase){
-        setPill(pillLive, "Backend: no URL", "bad");
-        if (showStatus) setStatus("Error: API URL missing.");
-        return false;
-      }
-      try{
-        if (showStatus) setStatus("Pinging API…");
-        const res = await fetch(apiBase + "/", { method: "GET" });
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = await res.json().catch(()=>({}));
-        setPill(pillLive, "Backend: online", "ok");
-        if (showStatus) setStatus("API OK.");
-        log("[API] " + JSON.stringify(data));
-        return true;
-      }catch(e){
-        setPill(pillLive, "Backend: sleeping/offline", "warn");
-        if (showStatus) setStatus("API ping failed: " + (e.message || String(e)));
-        return false;
-      }
-    }
+}
 
-    async function wakeBackend(){
-      const ok = await pingAPI(false);
-      if (ok){
-        setStatus("Backend already awake ✅");
-        return true;
-      }
-      // one more attempt after short wait
-      setStatus("Waking backend…");
-      await new Promise(r => setTimeout(r, 900));
-      const ok2 = await pingAPI(false);
-      setStatus(ok2 ? "Backend is awake ✅" : "Backend still sleeping. Try again in 10–20s.");
-      return ok2;
-    }
+function simulateProcessing(file){
 
-    // ---------- Retry wrapper (handles 503 sleep + transient network) ----------
-    async function fetchWithRetry(url, opts, tries=4){
-      let lastErr = null;
-      for (let i=1;i<=tries;i++){
-        try{
-          const res = await fetch(url, opts);
-          if (res.status === 503){
-            setStatus(`HTTP 503 (Space sleeping). Retrying… (${i}/${tries})`);
-            await new Promise(r => setTimeout(r, 1200*i));
-            continue;
-          }
-          return res;
-        }catch(e){
-          lastErr = e;
-          setStatus(`Network error. Retrying… (${i}/${tries})`);
-          await new Promise(r => setTimeout(r, 900*i));
-        }
-      }
-      throw (lastErr || new Error("Request failed after retries"));
-    }
+return new Promise((resolve)=>{
 
-    function makeDownloadLink(apiBase, name){
-      const a = document.createElement("a");
-      a.href = apiBase + "/download/" + encodeURIComponent(name);
-      a.textContent = "Download " + cleanName(name);
-      a.download = cleanName(name);
-      a.target = "_blank";
-      a.rel = "noopener";
-      downloadsEl.appendChild(a);
-    }
+setTimeout(()=>{
 
-    // ---------- UI events ----------
-    fileEl.addEventListener("change", () => {
-      selectedFile = fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
-      clearDownloads();
+generateClips(file)
 
-      if (!selectedFile){
-        splitBtn.disabled = true;
-        setStatus("Status: no file selected.");
-        return;
-      }
-      splitBtn.disabled = false;
-      setStatus("Ready: " + selectedFile.name);
-    });
+resolve()
 
-    socialPresetEl.addEventListener("change", () => {
-      if (!socialPresetEl.checked) return;
-      lengthEl.value = "60";
-      modeEl.value = "accurate";
-      setStatus("Social preset applied: 60s + accurate");
-    });
+},2000)
 
-    clearBtn.addEventListener("click", () => {
-      try{ fileEl.value = ""; }catch{}
-      selectedFile = null;
-      splitBtn.disabled = true;
-      splitBtn.textContent = "Split video";
-      clearDownloads();
-      setStatus("Status: cleared. Select a video.");
-    });
+})
 
-    pingBtn.addEventListener("click", () => pingAPI(true));
-    wakeBtn.addEventListener("click", () => wakeBackend());
+}
 
-    // ---------- Split handler (no double-click, clean reset each run) ----------
-    splitBtn.addEventListener("click", async () => {
-      if (!selectedFile) { setStatus("Error: choose a file first."); return; }
-      if (splitBtn.disabled) return;
+function generateClips(file){
 
-      const apiBase = normalizeBase(apiEl.value);
-      if (!apiBase){ setStatus("Error: API URL missing."); return; }
+for(let i=1;i<=3;i++){
 
-      // Lock UI
-      splitBtn.disabled = true;
-      const oldLabel = splitBtn.textContent;
-      splitBtn.textContent = "Processing…";
-      clearDownloads();
+const clip=document.createElement("div")
 
-      try{
-        // Wake first (reduces 503)
-        await wakeBackend();
+clip.className="clip"
 
-        const segmentSeconds = Math.min(Math.max(parseInt(lengthEl.value || "30",10) || 30, 1), 900);
-        const modeVal = (modeEl.value || "fast").toLowerCase();
+clip.innerHTML=`
 
-      document.getElementById("loader").style.display = "block";
-        setStatus("Uploading to server…");
+<span>Clip ${i}</span>
 
-        const form = new FormData();
-        form.append("file", selectedFile);
+<button onclick="downloadClip('${file.name}','${i}')">
 
-        const url = `${apiBase}/split?segment_seconds=${encodeURIComponent(segmentSeconds)}&mode=${encodeURIComponent(modeVal)}`;
-        const res = await fetchWithRetry(url, { method:"POST", body: form }, 4);
+Download
 
-        const data = await res.json().catch(()=>({}));
-        if (!res.ok){
-          throw new Error(data?.detail || data?.error || ("HTTP " + res.status));
-        }
+</button>
 
-        const clips = Array.isArray(data.clips) ? data.clips : [];
-        if (!clips.length){
-          setStatus("No clips returned. Try smaller video or switch mode.");
-          return;
-        }
+`
 
-        window.lastClips = clips;
-        clips.forEach(name => makeDownloadLink(apiBase, name));
+clipsContainer.appendChild(clip)
 
-        // Show ZIP button now that we have clips
-        zipBtn.style.display = "block";
+}
 
-        setStatus("Done. Clips ready.");
-      }catch(e){
-        setStatus("Error: " + (e.message || String(e)));
-        log("[HINT] If you keep seeing 503, open the HF Space and Restart/Factory rebuild.");
-      }finally{
+}
 
-    document.getElementById("loader").style.display = "none";
-        
-        splitBtn.disabled = false;
-        splitBtn.textContent = oldLabel;
-      }
-    });
+function downloadClip(name,index){
 
-    // ---------- Download all ZIP ----------
-    zipBtn.addEventListener("click", async () => {
-      if (!window.JSZip){
-        setStatus("ZIP library missing.");
-        return;
-      }
-      if (!window.lastClips || !window.lastClips.length){
-        setStatus("No clips to zip yet.");
-        return;
-      }
+alert("Clip "+index+" ready for download (backend required)")
 
-      const apiBase = normalizeBase(apiEl.value);
-      if (!apiBase){ setStatus("Error: API URL missing."); return; }
+}
 
-      // Lock ZIP button briefly
-      zipBtn.disabled = true;
-      const old = zipBtn.textContent;
-      zipBtn.textContent = "Zipping…";
+</script>
 
-      try{
-        setStatus("Creating ZIP…");
-
-        const zip = new JSZip();
-        for (const name of window.lastClips){
-          const res = await fetchWithRetry(apiBase + "/download/" + encodeURIComponent(name), { method:"GET" }, 3);
-          if (!res.ok) throw new Error("Failed to fetch: " + name + " (HTTP " + res.status + ")");
-          const blob = await res.blob();
-          zip.file(cleanName(name), blob);
-        }
-
-        const content = await zip.generateAsync({ type: "blob" });
-        const url = URL.createObjectURL(content);
-
-        const a = document.createElement("a");
-        a.href = url;
-
-        const baseName = selectedFile
-          ? selectedFile.name.replace(/\.[^/.]+$/, "")
-          : "clips";
-        a.download = baseName + "_clips.zip";
-
-        a.click();
-        setStatus("ZIP downloaded.");
-      }catch(e){
-        setStatus("ZIP error: " + (e.message || String(e)));
-      }finally{
-        zipBtn.disabled = false;
-        zipBtn.textContent = old;
-      }
-    });
-
-    // ---------- Initial state ----------
-    setStatus("Status: page loaded. Select a video.");
-    pingAPI(false);
-  </script>
-  <footer class="site-footer">
-  <p>© 2026 ClipShortener</p>
-  <p>Free tool for creators • TikTok • Reels • Shorts</p>
-  </footer>
 </body>
-          </html>
+  </html>
