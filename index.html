@@ -355,7 +355,7 @@ loader.style.display="none"
 
 }
 
-function simulateProcessing(file){
+
 
 return new Promise((resolve)=>{
 
@@ -370,7 +370,7 @@ resolve()
 
 }
 
-function generateClips(file){
+
 
 for(let i=1;i<=3;i++){
 
@@ -396,18 +396,52 @@ clipsContainer.appendChild(clip)
 
 }
 
-function downloadClip(name,index){
+
 
 alert("Clip "+index+" ready for download (backend required)")
 
 }
-
-</script>
-<script>
 async function splitVideo(){
-  alert("Button is working");
+
+const fileInput = document.querySelector('input[type="file"]');
+const file = fileInput.files[0];
+
+if(!file){
+alert("Upload a video first");
+return;
 }
+
+alert("Uploading...");
+
+try{
+
+const formData = new FormData();
+formData.append("video", file);
+
+const res = await fetch("https://clipshortener-backend.onrender.com/split", {
+method: "POST",
+body: formData
+});
+
+const data = await res.json();
+
+console.log(data);
+
+if(!data.clips){
+alert("No clips returned");
+return;
+}
+
+alert("Clips ready!");
+
+}catch(e){
+console.error(e);
+alert("Error connecting to backend");
+}
+
+  }
 </script>
+
   <script>
 alert("JS is working");
   </script>
