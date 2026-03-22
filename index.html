@@ -219,11 +219,7 @@ ClipShortener
 
 </label>
 
-<button id="splitBtn">
-
-Split Video
-
-</button>
+<button onclick="splitVideo()">Split Video</button>
 
 <div class="loader" id="loader">
 
@@ -407,6 +403,10 @@ alert("Clip "+index+" ready for download (backend required)")
 }
 
 </script>
-
+<script>
+async function splitVideo(){
+  alert("Button is working");
+}
+</script>
 </body>
   </html>
