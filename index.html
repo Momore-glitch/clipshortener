@@ -334,7 +334,6 @@ clipsContainer.innerHTML=""
 
 try{
 
-await simulateProcessing(file)
 
 }
 catch(err){
@@ -372,7 +371,7 @@ resolve()
 
 
 
-for(let i=1;i<=3;i++){
+
 
 const clip=document.createElement("div")
 
@@ -398,7 +397,7 @@ clipsContainer.appendChild(clip)
 
 
 
-alert("Clip "+index+" ready for download (backend required)")
+
 
 }
 async function splitVideo(){
