@@ -249,7 +249,33 @@ const clipsContainer=document.getElementById("clips")
 
 button.addEventListener("click",splitVideo)
 
-  async function splitVideo(){
+  async function splitVideo(const res = await fetch("https://mrayz-clipshortener-api.hf.space/split?segment_seconds=15&mode=fast", {
+  method: "POST",
+  body: formData
+});
+
+const data = await res.json();
+
+console.log(data);
+
+// 🔥 clear old clips
+clipsContainer.innerHTML = "";
+
+// 🔥 show REAL clips
+data.clips.forEach((name, index) => {
+
+  const clip = document.createElement("div");
+
+  clip.innerHTML = `
+    <p>Clip ${index + 1}</p>
+    <a href="https://mrayz-clipshortener-api.hf.space/download/${name}" target="_blank">
+      <button>Download</button>
+    </a>
+  `;
+
+  clipsContainer.appendChild(clip);
+
+});){
 
 if(processing) return;
 
@@ -441,8 +467,6 @@ alert("Error connecting to backend");
   }
 </script>
 
-  <script>
-alert("JS is working");
-  </script>
+
 </body>
   </html>
