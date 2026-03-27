@@ -1,321 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>ClipShortener</title>
 
-<meta name="description" content="Turn long videos into short clips instantly for TikTok, Reels and Shorts.">
-
-<meta property="og:title" content="ClipShortener">
-<meta property="og:description" content="Turn long videos into short clips instantly">
-<meta property="og:image" content="preview.png">
-
-<link rel="icon" type="image/png" href="favicon.png">
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
 <style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Poppins;
-}
-
 body{
-
-background: radial-gradient(circle at center, #3b0047, #120016 70%);
-color:white;
-min-height:100vh;
-display:flex;
-flex-direction:column;
-align-items:center;
-
-}
-
-header{
-
-width:100%;
-padding:25px;
-text-align:center;
-font-size:28px;
-font-weight:600;
-
-background:linear-gradient(90deg,#ff3ad4,#9d4dff);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-
-}
-
-.hero{
-
-text-align:center;
-max-width:700px;
-margin-top:20px;
-
-}
-
-.hero h1{
-
-font-size:34px;
-margin-bottom:10px;
-
-}
-
-.hero p{
-
-opacity:0.8;
-margin-bottom:30px;
-
+  margin:0;
+  font-family:Arial, sans-serif;
+  background: radial-gradient(circle at top, #3a0a4a, #0b0012);
+  color:white;
+  text-align:center;
 }
 
 .container{
-
-background:rgba(255,255,255,0.05);
-border-radius:16px;
-padding:30px;
-width:90%;
-max-width:650px;
-
-backdrop-filter: blur(10px);
-
-box-shadow:0 10px 40px rgba(0,0,0,0.4);
-
+  padding:20px;
 }
 
-.upload-area{
-
-border:2px dashed rgba(255,255,255,0.3);
-padding:35px;
-border-radius:10px;
-text-align:center;
-cursor:pointer;
-
-transition:0.3s;
-
+h1{
+  color:#ff4dff;
 }
 
-.upload-area:hover{
-
-border-color:#ff5cf7;
-
-}
-
-input[type=file]{
-display:none;
+.box{
+  margin-top:20px;
+  padding:20px;
+  border-radius:15px;
+  background:rgba(255,255,255,0.05);
 }
 
 button{
-
-margin-top:20px;
-
-background:linear-gradient(45deg,#ff2fd2,#7d55ff);
-
-border:none;
-color:white;
-
-padding:14px 30px;
-border-radius:10px;
-
-font-size:16px;
-
-cursor:pointer;
-
-transition:0.3s;
-
-}
-
-button:hover{
-
-transform:scale(1.05);
-
+  padding:12px 20px;
+  border:none;
+  border-radius:10px;
+  background:linear-gradient(45deg,#ff00cc,#7a5cff);
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
 }
 
 button:disabled{
-
-opacity:0.5;
-cursor:not-allowed;
-
+  opacity:0.5;
 }
 
-.loader{
-
-display:none;
-margin-top:20px;
-
-}
-
-.clips{
-
-margin-top:30px;
-
+#loading{
+  margin-top:15px;
+  display:none;
 }
 
 .clip{
-
-background:rgba(255,255,255,0.05);
-padding:15px;
-border-radius:8px;
-margin-bottom:15px;
-
-display:flex;
-justify-content:space-between;
-align-items:center;
-
+  margin-top:15px;
+  padding:10px;
+  border-radius:10px;
+  background:rgba(255,255,255,0.05);
 }
-
-footer{
-
-margin-top:40px;
-opacity:0.5;
-font-size:14px;
-padding-bottom:20px;
-
-}
-
-@media(max-width:600px){
-
-.hero h1{
-font-size:26px;
-}
-
-.container{
-padding:20px;
-}
-
-}
-
 </style>
-
 </head>
 
 <body>
 
-<header>
-
-ClipShortener
-
-</header>
-
-<div class="hero">
-
-<h1>Turn long videos into short clips instantly</h1>
-
-<p>Perfect for TikTok • Reels • Shorts</p>
-
-</div>
-
 <div class="container">
 
-<label class="upload-area">
+<h1>ClipShortener</h1>
+<p>Turn long videos into short clips instantly</p>
 
-<input id="videoInput" type="file" accept="video/*">
+<div class="box">
 
-<p>Select a video file</p>
+<input type="file" id="videoInput"><br><br>
 
-</label>
+<button id="splitBtn" onclick="splitVideo()">Split Video</button>
 
-<button onclick="splitVideo()">Split Video</button>
+<div id="loading">Processing video...</div>
 
-<div class="loader" id="loader">
-
-Processing video...
-
-</div>
-
-<div class="clips" id="clips">
+<div id="clipsContainer"></div>
 
 </div>
 
 </div>
-
-<footer>
-
-© 2026 ClipShortener
-
-</footer>
 
 <script>
 
-let processing=false
+const API = "https://mrayz-clipshortener-api.hf.space";
 
-const button=document.getElementById("splitBtn")
-const loader=document.getElementById("loader")
-const clipsContainer=document.getElementById("clips")
+async function splitVideo(){
 
-button.addEventListener("click",splitVideo)
-
-  async function splitVideo(const res = await fetch("https://mrayz-clipshortener-api.hf.space/split?segment_seconds=15&mode=fast", {
-  method: "POST",
-  body: formData
-});
-
-const data = await res.json();
-
-console.log(data);
-
-// 🔥 clear old clips
-clipsContainer.innerHTML = "";
-
-// 🔥 show REAL clips
-data.clips.forEach((name, index) => {
-
-  const clip = document.createElement("div");
-
-  clip.innerHTML = `
-    <p>Clip ${index + 1}</p>
-    <a href="https://mrayz-clipshortener-api.hf.space/download/${name}" target="_blank">
-      <button>Download</button>
-    </a>
-  `;
-
-  clipsContainer.appendChild(clip);
-
-});){
-
-if(processing) return;
-
-const file = document.getElementById("videoInput").files[0];
+const fileInput = document.getElementById("videoInput");
+const file = fileInput.files[0];
+const btn = document.getElementById("splitBtn");
+const loading = document.getElementById("loading");
+const clipsContainer = document.getElementById("clipsContainer");
 
 if(!file){
-alert("Upload a video first");
+alert("Please upload a video");
 return;
 }
 
-processing = true;
-button.disabled = true;
-loader.style.display = "block";
+btn.disabled = true;
+loading.style.display = "block";
 clipsContainer.innerHTML = "";
 
 try{
 
 const formData = new FormData();
-formData.append("video", file);
+formData.append("file", file);
 
-const response = await fetch("https://clipshortener-backend.onrender.com/split", {
+const res = await fetch(`${API}/split?segment_seconds=15&mode=fast`, {
 method: "POST",
 body: formData
 });
 
-const data = await response.json();
+if(!res.ok){
+throw new Error("Server error");
+}
 
-if(!data.clips){
+const data = await res.json();
+
+if(!data.clips || data.clips.length === 0){
 throw new Error("No clips returned");
 }
 
-data.clips.forEach((url, index)=>{
+data.clips.forEach((name, index)=>{
 
 const clip = document.createElement("div");
-
 clip.className = "clip";
 
 clip.innerHTML = `
-<span>Clip ${index+1}</span>
-<a href="${url}" download target="_blank">
+<p>Clip ${index+1}</p>
+<a href="${API}/download/${name}" target="_blank">
 <button>Download</button>
 </a>
 `;
@@ -326,147 +138,18 @@ clipsContainer.appendChild(clip);
 
 }catch(err){
 
-alert("Error processing video");
-console.error(err);
+alert("Error: " + err.message);
 
 }finally{
 
-processing = false;
-button.disabled = false;
-loader.style.display = "none";
-
-}
-
-  }
-
-if(processing) return
-
-const file=document.getElementById("videoInput").files[0]
-
-if(!file){
-
-alert("Please upload a video first")
-
-return
-
-}
-
-processing=true
-
-button.disabled=true
-loader.style.display="block"
-
-clipsContainer.innerHTML=""
-
-try{
-
-
-}
-catch(err){
-
-alert("Processing failed")
-
-console.error(err)
-
-}
-finally{
-
-processing=false
-
-button.disabled=false
-loader.style.display="none"
+btn.disabled = false;
+loading.style.display = "none";
 
 }
 
 }
 
-
-
-return new Promise((resolve)=>{
-
-setTimeout(()=>{
-
-
-resolve()
-
-},2000)
-
-})
-
-}
-
-
-
-
-
-const clip=document.createElement("div")
-
-clip.className="clip"
-
-clip.innerHTML=`
-
-<span>Clip ${i}</span>
-
-<button onclick="downloadClip('${file.name}','${i}')">
-
-Download
-
-</button>
-
-`
-
-clipsContainer.appendChild(clip)
-
-}
-
-}
-
-
-
-
-
-}
-async function splitVideo(){
-
-const fileInput = document.querySelector('input[type="file"]');
-const file = fileInput.files[0];
-
-if(!file){
-alert("Upload a video first");
-return;
-}
-
-alert("Uploading...");
-
-try{
-
-const formData = new FormData();
-formData.append("video", file);
-
-const res = await fetch("https://clipshortener-backend.onrender.com/split", {
-method: "POST",
-body: formData
-});
-
-const data = await res.json();
-
-console.log(data);
-
-if(!data.clips){
-alert("No clips returned");
-return;
-}
-
-alert("Clips ready!");
-
-}catch(e){
-console.error(e);
-alert("Error connecting to backend");
-}
-
-  }
 </script>
 
-
 </body>
-  </html>
+</html>
