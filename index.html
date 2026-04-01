@@ -92,7 +92,7 @@ const loading = document.getElementById("loading");
 const clipsContainer = document.getElementById("clipsContainer");
 
 if(!file){
-alert("Please upload a video");
+alert("Upload a video");
 return;
 }
 
@@ -105,6 +105,52 @@ try{
 const formData = new FormData();
 formData.append("file", file);
 
+// 🔥 send to backend
+const res = await fetch(`${API}/split?segment_seconds=15`, {
+method: "POST",
+body: formData
+});
+
+if(!res.ok){
+throw new Error("Server failed");
+}
+
+const data = await res.json();
+
+if(!data.clips || data.clips.length === 0){
+throw new Error("No clips returned");
+}
+
+// 🔥 show clips
+data.clips.forEach((name, index)=>{
+
+const div = document.createElement("div");
+div.className = "clip";
+
+div.innerHTML = `
+<p>Clip ${index+1}</p>
+<a href="${API}/download/${name}" target="_blank">
+<button>Download</button>
+</a>
+`;
+
+clipsContainer.appendChild(div);
+
+});
+
+}catch(err){
+
+alert("Error: " + err.message);
+
+}finally{
+
+btn.disabled = false;
+loading.style.display = "none";
+
+}
+
+}
+  
 const res = await fetch(`${API}/split?segment_seconds=15&mode=fast`, {
 method: "POST",
 body: formData
