@@ -172,9 +172,11 @@ const btn = document.getElementById("splitBtn");
 const loading = document.getElementById("loading");
 const clipsContainer = document.getElementById("clipsContainer");
 
-if(!file){
-alert("Upload a video");
-return;
+const videoLink = document.getElementById("videoLink").value.trim();
+
+if (!file && !videoLink) {
+  alert("Upload a video or paste a link");
+  return;
 }
 
 btn.disabled = true;
@@ -184,7 +186,14 @@ clipsContainer.innerHTML = "";
 try{
 
 const formData = new FormData();
-formData.append("file", file);
+
+const videoLink = document.getElementById("videoLink").value.trim();
+
+if (videoLink) {
+  formData.append("videoUrl", videoLink);
+} else {
+  formData.append("video", file);
+}
 
 const res = await fetch(`${API}/split?segment_seconds=15`, {
 method: "POST",
