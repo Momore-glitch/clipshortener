@@ -192,7 +192,7 @@ const videoLink = document.getElementById("videoLink").value.trim();
 if (videoLink) {
   formData.append("videoUrl", videoLink);
 } else {
-  formData.append("video", file);
+  formData.append("file", file);
 }
 
 const res = await fetch(`${API}/split?segment_seconds=15`, {
