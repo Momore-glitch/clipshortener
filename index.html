@@ -128,6 +128,17 @@ YouTube • TikTok • Instagram
 OR
 </p>
 
+<input
+    type="text"
+    id="videoLink"
+    placeholder="Paste a YouTube link (Coming Soon)"
+    style="
+        width:100%;
+        margin-bottom:12px;
+        padding:12px;
+        border-radius:10px;
+    ">
+
 <input type="file" id="videoInput"><br><br>
 
 <div class="feature-card">
@@ -184,9 +195,9 @@ const clipsContainer = document.getElementById("clipsContainer");
 
 const videoLink = document.getElementById("videoLink").value.trim();
 
-if (!file && !videoLink) {
-  alert("Upload a video or paste a link");
-  return;
+if (!file && videoLink === "") {
+    alert("Upload a video or paste a YouTube link.");
+    return;
 }
 
 btn.disabled = true;
@@ -202,7 +213,12 @@ const videoLink = document.getElementById("videoLink").value.trim();
 if (videoLink) {
   formData.append("videoUrl", videoLink);
 } else {
-  formData.append("file", file);
+  const videoLink = document.getElementById("videoLink").value.trim();
+
+if (videoLink !== "") {
+    formData.append("videoUrl", videoLink);
+} else {
+    formData.append("file", file);
 }
 
 const res = await fetch(`${API}/split?segment_seconds=15`, {
