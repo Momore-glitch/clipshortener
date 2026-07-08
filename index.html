@@ -128,16 +128,7 @@ YouTube • TikTok • Instagram
 OR
 </p>
 
-<input
-    type="text"
-    id="videoLink"
-    placeholder="Paste a YouTube link (Coming Soon)"
-    style="
-        width:100%;
-        margin-bottom:12px;
-        padding:12px;
-        border-radius:10px;
-    ">
+
 
 <input type="file" id="videoInput"><br><br>
 
@@ -209,11 +200,6 @@ try{
 const formData = new FormData();
 
 const videoLink = document.getElementById("videoLink").value.trim();
-
-if (videoLink) {
-  formData.append("videoUrl", videoLink);
-} else {
-  const videoLink = document.getElementById("videoLink").value.trim();
 
 if (videoLink !== "") {
     formData.append("videoUrl", videoLink);
