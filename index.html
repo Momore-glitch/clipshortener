@@ -217,6 +217,10 @@ throw new Error("Server failed");
 }
 
 const data = await res.json();
+  
+  if (data.job_id) {
+    setStatus("Job ID: " + data.job_id);
+  }
 
 if(!data.clips || data.clips.length === 0){
 throw new Error("No clips returned");
