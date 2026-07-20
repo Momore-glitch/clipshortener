@@ -174,6 +174,46 @@ Used by creators to make more content faster
 
 const API = "https://mrayz-clipshortener-api.hf.space";
 
+let currentJobId = null;
+
+async function reportFrontendError(error){
+
+    try{
+
+        await fetch(`${API}/frontend-error`,{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+
+                message:error.message || "Unknown",
+
+                stack:error.stack || "",
+
+                url:window.location.href,
+
+                line:error.lineno || null,
+
+                column:error.colno || null,
+
+                job_id:currentJobId
+
+            })
+
+        });
+
+    }catch(e){
+
+        console.log("Failed to report frontend error.");
+
+    }
+
+}
+
 document.getElementById("splitBtn").addEventListener("click", splitVideo);
 
 function setStatus(message) {
@@ -222,6 +262,8 @@ throw new Error("Server failed");
 
 const data = await res.json();
   
+
+currentJobId = data.job_id || null;
   
 
 if(!data.clips || data.clips.length === 0){
@@ -248,9 +290,14 @@ clipsContainer.appendChild(div);
 
 }catch(err){
 
+await reportFrontendError(err);
+
 alert("Error: " + err.message);
 
-}finally{
+}
+
+
+finally{
 
 btn.disabled = false;
 loading.style.display = "none";
