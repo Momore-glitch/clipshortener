@@ -176,6 +176,10 @@ const API = "https://mrayz-clipshortener-api.hf.space";
 
 document.getElementById("splitBtn").addEventListener("click", splitVideo);
 
+function setStatus(message) {
+    document.getElementById("status").textContent = message;
+}
+
 async function splitVideo(){
 
 const fileInput = document.getElementById("videoInput");
@@ -218,9 +222,7 @@ throw new Error("Server failed");
 
 const data = await res.json();
   
-  if (data.job_id) {
-    setStatus("Job ID: " + data.job_id);
-  }
+  
 
 if(!data.clips || data.clips.length === 0){
 throw new Error("No clips returned");
@@ -237,6 +239,8 @@ div.innerHTML = `
 <button>Download</button>
 </a>
 `;
+
+<div id="status" style="margin-top:10px;font-size:14px;opacity:0.8;"></div>
 
 clipsContainer.appendChild(div);
 
