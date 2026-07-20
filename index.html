@@ -164,6 +164,8 @@ Used by creators to make more content faster
 
 <div id="loading">Processing video...</div>
 
+<div id="status" style="margin-top:10px;font-size:14px;opacity:0.8;"></div>
+
 <div id="clipsContainer"></div>
 
 </div>
@@ -222,89 +224,90 @@ function setStatus(message) {
 
 async function splitVideo(){
 
-const fileInput = document.getElementById("videoInput");
-const file = fileInput.files[0];
-const btn = document.getElementById("splitBtn");
-const loading = document.getElementById("loading");
-const clipsContainer = document.getElementById("clipsContainer");
+    const fileInput = document.getElementById("videoInput");
+    const file = fileInput.files[0];
+    const btn = document.getElementById("splitBtn");
+    const loading = document.getElementById("loading");
+    const clipsContainer = document.getElementById("clipsContainer");
+    const videoLink = document.getElementById("videoLink").value.trim();
 
-const videoLink = document.getElementById("videoLink").value.trim();
+    if (!file && videoLink === "") {
+        alert("Upload a video or paste a video link.");
+        return;
+    }
 
-if (!file && videoLink === "") {
-    alert("Upload a video or paste a YouTube link.");
-    return;
+    btn.disabled = true;
+    loading.style.display = "block";
+    clipsContainer.innerHTML = "";
+    setStatus("Uploading...");
+
+    try{
+
+        const formData = new FormData();
+
+        if(videoLink !== ""){
+            formData.append("videoUrl", videoLink);
+        }else{
+            formData.append("file", file);
+        }
+
+        const res = await fetch(`${API}/split?segment_seconds=15`,{
+            method:"POST",
+            body:formData
+        });
+
+        if(!res.ok){
+            const text = await res.text();
+            throw new Error(text || "Server failed.");
+        }
+
+        const data = await res.json();
+
+        currentJobId = data.job_id || null;
+
+        if(!data.clips || data.clips.length===0){
+            throw new Error("No clips returned.");
+        }
+
+        setStatus(`Generated ${data.clips.length} clips.`);
+
+        data.clips.forEach((name,index)=>{
+
+            const div=document.createElement("div");
+
+            div.className="clip";
+
+            div.innerHTML=`
+                <p>Clip ${index+1}</p>
+                <a href="${API}/download/${name}" target="_blank">
+                    <button>Download</button>
+                </a>
+            `;
+
+            clipsContainer.appendChild(div);
+
+        });
+
+    }catch(err){
+
+        await reportFrontendError(err);
+
+        console.error(err);
+
+        setStatus("Failed.");
+
+        alert(err.message);
+
+    }finally{
+
+        btn.disabled=false;
+
+        loading.style.display="none";
+
+    }
+
 }
 
-btn.disabled = true;
-loading.style.display = "block";
-clipsContainer.innerHTML = "";
-
-try{
-
-const formData = new FormData();
-
-const videoLink = document.getElementById("videoLink").value.trim();
-
-if (videoLink !== "") {
-    formData.append("videoUrl", videoLink);
-} else {
-    formData.append("file", file);
-}
-
-const res = await fetch(`${API}/split?segment_seconds=15`, {
-method: "POST",
-body: formData
-});
-
-if(!res.ok){
-throw new Error("Server failed");
-}
-
-const data = await res.json();
-  
-
-currentJobId = data.job_id || null;
-  
-
-if(!data.clips || data.clips.length === 0){
-throw new Error("No clips returned");
-}
-
-data.clips.forEach((name, index)=>{
-
-const div = document.createElement("div");
-div.className = "clip";
-
-div.innerHTML = `
-<p>Clip ${index+1}</p>
-<a href="${API}/download/${name}" target="_blank">
-<button>Download</button>
-</a>
-`;
-
-<div id="status" style="margin-top:10px;font-size:14px;opacity:0.8;"></div>
-
-clipsContainer.appendChild(div);
-
-});
-
-}catch(err){
-
-await reportFrontendError(err);
-
-alert("Error: " + err.message);
-
-}
-
-
-finally{
-
-btn.disabled = false;
-loading.style.display = "none";
-
-}
-
-}
 
 </script>
 
