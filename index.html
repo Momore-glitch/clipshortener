@@ -231,10 +231,12 @@ async function splitVideo(){
     const clipsContainer = document.getElementById("clipsContainer");
     const videoLink = document.getElementById("videoLink").value.trim();
 
-    if (!file && videoLink === "") {
-        alert("Upload a video or paste a video link.");
-        return;
-    }
+    if (!file) {
+    alert("Please select a video file.");
+    return;
+}
+
+formData.append("file", file);
 
     btn.disabled = true;
     loading.style.display = "block";
