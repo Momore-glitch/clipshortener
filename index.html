@@ -253,6 +253,8 @@ async function splitVideo(){
             formData.append("file", file);
         }
 
+alert("About to send request to backend...");
+
         const res = await fetch(`${API}/split?segment_seconds=15`,{
             method:"POST",
             body:formData
