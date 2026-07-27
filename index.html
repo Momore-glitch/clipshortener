@@ -255,10 +255,28 @@ async function splitVideo(){
 
 alert("About to send request to backend...");
 
-        const res = await fetch(`${API}/split?segment_seconds=15`,{
-            method:"POST",
-            body:formData
-        });
+        const controller = new AbortController();
+
+const timeout = setTimeout(() => {
+    controller.abort();
+}, 300000);
+
+      console.log("Sending request...");
+console.log(API + "/split");
+console.log(formData);
+
+const res = await fetch(
+    `${API}/split?segment_seconds=15`,
+    {
+        method: "POST",
+        body: formData,
+        signal: controller.signal
+    }
+
+  console.log("Response status:", res.status);
+);
+
+clearTimeout(timeout);
 
         if(!res.ok){
             const text = await res.text();
