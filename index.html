@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+e<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -291,6 +291,20 @@ alert("About to send request to backend...");
             clipsContainer.appendChild(div);
 
         });
+
+      const all = document.createElement("div");
+
+all.style.marginTop = "20px";
+
+all.innerHTML = `
+<a href="${API}/download-all/${data.job_id}">
+<button>
+Download All ZIP
+</button>
+</a>
+`;
+
+clipsContainer.appendChild(all);
 
     }catch(err){
 
