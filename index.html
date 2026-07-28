@@ -336,6 +336,8 @@ console.log("Response status:", res.status);
             throw new Error("No clips returned.");
         }
 
+      setProgress(100,"Finished.");
+
         setStatus(`Generated ${data.clips.length} clips.`);
 
         data.clips.forEach((name,index)=>{
