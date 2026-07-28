@@ -328,6 +328,8 @@ console.log("Response status:", res.status);
 
         const data = await res.json();
 
+      setProgress(80,"Generating clips...");
+
         currentJobId = data.job_id || null;
 
         if(!data.clips || data.clips.length===0){
