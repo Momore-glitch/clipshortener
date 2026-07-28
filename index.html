@@ -306,6 +306,8 @@ console.log("Sending request...");
 console.log(API + "/split");
 console.log(formData);
 
+      setProgress(45,"Uploading...");
+      
 const res = await fetch(
     `${API}/split?segment_seconds=15`,
     {
