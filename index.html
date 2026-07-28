@@ -287,6 +287,8 @@ async function splitVideo(){
 
         const formData = new FormData();
 
+      setProgress(20,"Packaging video...");
+
         if(videoLink !== ""){
             formData.append("videoUrl", videoLink);
         }else{
