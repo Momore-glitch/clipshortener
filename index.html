@@ -708,6 +708,246 @@ window.onerror = function (
 
 });
 
+  async function splitVideo() {
+
+    if (uploading) {
+
+    setStatus("A video is already being processed...");
+
+    return;
+
+    }
+
+    if (!selectedFile) {
+
+        alert("Please select a video first.");
+        return;
+
+    }
+
+    uploading = true;
+
+    disableButton();
+
+    clearResults();
+
+    showProgress();
+
+    setStatus("Uploading video...");
+
+    setProgress(5, "Preparing...");
+
+    currentJobId = null;
+
+    try {
+
+        const formData = new FormData();
+
+        formData.append("file", selectedFile);
+
+        setProgress(25, "Uploading...");
+
+        const response = await fetch(
+
+            `${API}/split?segment_seconds=15`,
+
+            {
+                method: "POST",
+                body: formData
+            }
+
+        );
+
+        if (!response.ok) {
+
+            throw new Error(await response.text());
+
+        }
+
+        setProgress(75, "Generating clips...");
+
+        const data = await response.json();
+
+        if (!data.success) {
+
+            throw new Error(
+
+                data.message ||
+
+                "The server returned an unsuccessful response."
+
+            );
+
+        }
+
+        currentJobId = data.job_id || null;
+
+        setProgress(100, "Completed");
+
+        setStatus(
+
+            `${data.clips.length} clip(s) created successfully.`
+
+        );
+
+        renderResults(data);
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        await reportFrontendError(error);
+
+        setStatus("Upload failed");
+
+        let message = "Something went wrong.";
+
+try {
+
+    const parsed = JSON.parse(error.message);
+
+    message = parsed.detail || message;
+
+}
+catch {
+
+    if (error.message) {
+
+        message = error.message;
+
+    }
+
+}
+
+alert(message);
+
+    }
+
+    finally {
+
+        uploading = false;
+
+        enableButton();
+
+        setTimeout(
+
+            resetProgress,
+
+            1000
+
+        );
+
+    }
+
+  }
+
+  function renderResults(data) {
+
+    clipsContainer.innerHTML = "";
+
+    if (!Array.isArray(data.clips) || data.clips.length === 0) {
+
+        clipsContainer.innerHTML = `
+
+            <p class="small">
+
+                No clips were generated.
+
+            </p>
+
+        `;
+
+        return;
+
+    }
+
+    data.clips.forEach((clipName, index) => {
+
+        const card = document.createElement("div");
+
+        card.className = "clip";
+
+        card.innerHTML = `
+
+            <h3>Clip ${index + 1}</h3>
+
+            <br>
+
+            <a
+                href="${API}/download/${encodeURIComponent(clipName)}"
+                target="_blank"
+            >
+
+                <button>
+
+                    Download Clip
+
+                </button>
+
+            </a>
+
+        `;
+
+        clipsContainer.appendChild(card);
+
+    });
+
+    if (currentJobId) {
+
+        renderZipButton();
+
+    }
+
+  }
+
+  function renderZipButton() {
+
+    const zipCard = document.createElement("div");
+
+    zipCard.className = "clip";
+
+    zipCard.innerHTML = `
+
+        <h3>
+
+            Download Everything
+
+        </h3>
+
+        <br>
+
+        <a
+            href="${API}/download-all/${encodeURIComponent(currentJobId)}"
+            target="_blank"
+        >
+
+            <button>
+
+                Download All ZIP
+
+            </button>
+
+        </a>
+
+    `;
+
+    clipsContainer.appendChild(zipCard);
+
+  }
+
+  splitBtn.addEventListener(
+    "click",
+    splitVideo
+);
+
+resetProgress();
+
+setStatus("");
+
+clearResults();
+
 
 </script>
 
