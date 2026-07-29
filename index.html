@@ -650,6 +650,99 @@ splitVideo
 
 );
 
+  videoInput.addEventListener(
+"change",
+async ()=>{
+
+const file =
+videoInput.files[0];
+
+if(!file){
+
+videoInfo.style.display="none";
+
+return;
+
+}
+
+const sizeMB =
+(file.size/1024/1024).toFixed(2);
+
+const url =
+URL.createObjectURL(file);
+
+const video =
+document.createElement("video");
+
+video.preload="metadata";
+
+video.src=url;
+
+video.onloadedmetadata=()=>{
+
+const duration =
+Math.floor(video.duration);
+
+const hours =
+Math.floor(duration/3600);
+
+const minutes =
+Math.floor((duration%3600)/60);
+
+const seconds =
+duration%60;
+
+let length="";
+
+if(hours>0){
+
+length=
+`${hours}h ${minutes}m ${seconds}s`;
+
+}else{
+
+length=
+`${minutes}m ${seconds}s`;
+
+}
+
+videoInfo.innerHTML=`
+
+<strong>Selected File</strong>
+
+<br><br>
+
+📄 ${file.name}
+
+<br><br>
+
+💾 ${sizeMB} MB
+
+<br><br>
+
+⏱ ${length}
+
+`;
+
+videoInfo.style.display="block";
+
+URL.revokeObjectURL(url);
+
+};
+
+video.onerror=()=>{
+
+videoInfo.innerHTML=
+"Unable to read video information.";
+
+videoInfo.style.display="block";
+
+URL.revokeObjectURL(url);
+
+};
+
+});
+
 </script>
 
 </body>
