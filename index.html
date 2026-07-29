@@ -275,6 +275,11 @@ async function reportFrontendError(error){
 document.getElementById("splitBtn").addEventListener("click", splitVideo);
 
 function setProgress(percent,text){
+  function setStatus(message){
+
+    document.getElementById("status").textContent = message;
+
+  }
 
     document.getElementById("progressBar").style.width =
         percent + "%";
