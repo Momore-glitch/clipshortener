@@ -725,6 +725,9 @@ await response.json();
 currentJobId =
 data.job_id;
 
+  console.log("Job ID:", data.job_id);
+console.log("API Response:", data);
+
 setProgress(
 100,
 "Finished"
@@ -792,7 +795,7 @@ zip.innerHTML=`
 
 <a
 
-href="${API}/download-all/${data.job_id}"
+href="${API}/download-all/${currentJobId}"
 
 target="_blank"
 
