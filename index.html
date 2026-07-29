@@ -651,6 +651,203 @@ column
 "change",
 async ()=>{
 
+  async function splitVideo(){
+
+const file =
+videoInput.files[0];
+
+if(!file){
+
+alert("Please select a video.");
+
+return;
+
+}
+
+disableButton();
+
+showProgress();
+
+clearResults();
+
+setStatus("Uploading...");
+
+setProgress(10,"Preparing upload...");
+
+try{
+
+const formData =
+new FormData();
+
+formData.append(
+"file",
+file
+);
+
+setProgress(
+30,
+"Uploading..."
+);
+
+const response =
+await fetch(
+
+`${API}/split?segment_seconds=15`,
+
+{
+
+method:"POST",
+
+body:formData
+
+}
+
+);
+
+if(!response.ok){
+
+throw new Error(
+
+await response.text()
+
+);
+
+}
+
+setProgress(
+80,
+"Generating clips..."
+);
+
+const data =
+await response.json();
+
+currentJobId =
+data.job_id;
+
+setProgress(
+100,
+"Finished"
+);
+
+setStatus(
+
+`${data.clips.length} clip(s) generated.`
+
+);
+
+clipsContainer.innerHTML="";
+
+data.clips.forEach(
+
+(name,index)=>{
+
+const card =
+document.createElement("div");
+
+card.className="clip";
+
+card.innerHTML=`
+
+<h3>
+
+Clip ${index+1}
+
+</h3>
+
+<br>
+
+<a
+
+href="${API}/download/${name}"
+
+target="_blank"
+
+>
+
+<button>
+
+Download Clip
+
+</button>
+
+</a>
+
+`;
+
+clipsContainer.appendChild(card);
+
+}
+
+);
+
+if(data.job_id){
+
+const zip =
+document.createElement("div");
+
+zip.className="clip";
+
+zip.innerHTML=`
+
+<a
+
+href="${API}/download-all/${data.job_id}"
+
+target="_blank"
+
+>
+
+<button>
+
+Download All ZIP
+
+</button>
+
+</a>
+
+`;
+
+clipsContainer.appendChild(zip);
+
+}
+
+}catch(error){
+
+console.error(error);
+
+await reportFrontendError(error);
+
+setStatus("Failed");
+
+alert(error.message);
+
+}
+
+finally{
+
+enableButton();
+
+setTimeout(
+
+resetProgress,
+
+1200
+
+);
+
+}
+
+}
+
+splitBtn.addEventListener(
+
+"click",
+
+splitVideo
+
+);
+
 const file =
 videoInput.files[0];
 
