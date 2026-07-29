@@ -34,7 +34,310 @@ rel="stylesheet">
 
 <style>
 
-/* SECTION 2 */
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+html{
+
+scroll-behavior:smooth;
+
+}
+
+body{
+
+font-family:"Inter",sans-serif;
+
+background:
+radial-gradient(circle at top,#42115f,#120018 70%);
+
+color:#ffffff;
+
+min-height:100vh;
+
+padding:25px;
+
+display:flex;
+
+justify-content:center;
+
+}
+
+.container{
+
+width:100%;
+
+max-width:760px;
+
+}
+
+.hero{
+
+text-align:center;
+
+margin-bottom:35px;
+
+}
+
+.hero h1{
+
+font-size:2.3rem;
+
+font-weight:800;
+
+color:#ffffff;
+
+margin-bottom:10px;
+
+}
+
+.hero p{
+
+opacity:.75;
+
+line-height:1.6;
+
+}
+
+.card{
+
+background:rgba(255,255,255,.05);
+
+border:1px solid rgba(255,255,255,.08);
+
+backdrop-filter:blur(12px);
+
+border-radius:20px;
+
+padding:25px;
+
+margin-bottom:25px;
+
+}
+
+.card h2{
+
+font-size:1.2rem;
+
+margin-bottom:15px;
+
+}
+
+.small{
+
+opacity:.7;
+
+font-size:.92rem;
+
+line-height:1.5;
+
+margin-bottom:15px;
+
+}
+
+input[type=file]{
+
+width:100%;
+
+padding:16px;
+
+border-radius:14px;
+
+border:2px dashed rgba(255,255,255,.15);
+
+background:rgba(255,255,255,.03);
+
+color:white;
+
+cursor:pointer;
+
+margin-top:10px;
+
+}
+
+button{
+
+width:100%;
+
+margin-top:18px;
+
+padding:16px;
+
+border:none;
+
+border-radius:14px;
+
+background:
+linear-gradient(135deg,#ff00cc,#7b61ff);
+
+font-size:16px;
+
+font-weight:700;
+
+color:white;
+
+cursor:pointer;
+
+transition:.25s;
+
+}
+
+button:hover{
+
+transform:translateY(-2px);
+
+}
+
+button:disabled{
+
+opacity:.6;
+
+cursor:not-allowed;
+
+transform:none;
+
+}
+
+#videoInfo{
+
+display:none;
+
+margin-top:18px;
+
+padding:15px;
+
+background:rgba(255,255,255,.04);
+
+border-radius:14px;
+
+line-height:1.8;
+
+font-size:.95rem;
+
+}
+
+#loading{
+
+display:none;
+
+margin-top:20px;
+
+}
+
+#progressOuter{
+
+width:100%;
+
+height:12px;
+
+border-radius:30px;
+
+background:#2c1736;
+
+overflow:hidden;
+
+}
+
+#progressBar{
+
+width:0%;
+
+height:100%;
+
+background:
+linear-gradient(90deg,#ff00cc,#7b61ff);
+
+transition:width .35s ease;
+
+}
+
+#progressText{
+
+margin-top:12px;
+
+font-size:.9rem;
+
+opacity:.8;
+
+}
+
+#status{
+
+margin-top:15px;
+
+font-weight:600;
+
+}
+
+.clip{
+
+padding:16px;
+
+border-radius:14px;
+
+background:rgba(255,255,255,.04);
+
+margin-bottom:15px;
+
+}
+
+.clip button{
+
+margin-top:12px;
+
+}
+
+ul{
+
+padding-left:20px;
+
+line-height:2;
+
+}
+
+footer{
+
+margin:45px 0 15px;
+
+text-align:center;
+
+opacity:.6;
+
+font-size:.85rem;
+
+line-height:1.8;
+
+}
+
+@media(max-width:650px){
+
+body{
+
+padding:18px;
+
+}
+
+.hero h1{
+
+font-size:1.8rem;
+
+}
+
+.card{
+
+padding:20px;
+
+}
+
+button{
+
+padding:15px;
+
+}
+
+  }
 
 </style>
 
@@ -42,11 +345,310 @@ rel="stylesheet">
 
 <body>
 
-<!-- SECTION 3 -->
+<div class="container">
+
+<div class="hero">
+
+<h1>ClipShortener</h1>
+
+<p>
+
+Turn long videos into multiple short clips in seconds.
+
+No editing.
+
+No experience.
+
+Just upload and download.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h2>Upload Video</h2>
+
+<p class="small">
+
+Supported formats:
+
+MP4 • MOV • AVI • MKV • WEBM
+
+</p>
+
+<input
+
+type="file"
+
+id="videoInput"
+
+accept="video/*"
+
+>
+
+<div id="videoInfo"></div>
+
+<button id="splitBtn">
+
+Create Clips
+
+</button>
+
+<div id="loading">
+
+<div id="progressOuter">
+
+<div id="progressBar"></div>
+
+</div>
+
+<p id="progressText">
+
+Preparing...
+
+</p>
+
+</div>
+
+<div id="status"></div>
+
+</div>
+
+
+<div class="card">
+
+<h2>Your Clips</h2>
+
+<div id="clipsContainer">
+
+<p class="small">
+
+Your generated clips will appear here.
+
+</p>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>Current Features</h2>
+
+<ul>
+
+<li>✔ Upload videos</li>
+
+<li>✔ Automatic clip generation</li>
+
+<li>✔ Individual downloads</li>
+
+<li>✔ Download all as ZIP</li>
+
+<li>✔ File size preview</li>
+
+<li>✔ Video duration preview</li>
+
+<li>✔ Mobile friendly</li>
+
+</ul>
+
+</div>
+
+
+<div class="card">
+
+<h2>Coming Soon</h2>
+
+<ul>
+
+<li>🚀 AI clip detection</li>
+
+<li>🚀 Video link support</li>
+
+<li>🚀 Auto captions</li>
+
+<li>🚀 Batch processing</li>
+
+<li>🚀 Vertical Shorts export</li>
+
+<li>🚀 Custom clip lengths</li>
+
+</ul>
+
+</div>
+
+
+<footer>
+
+<p>
+
+ClipShortener © 2026
+
+</p>
+
+<p>
+
+Fast.
+
+Simple.
+
+Free.
+
+</p>
+
+</footer>
+
+</div>
 
 <script>
 
-/* SECTION 4 */
+const API = "https://mrayz-clipshortener-api.hf.space";
+
+const videoInput =
+document.getElementById("videoInput");
+
+const splitBtn =
+document.getElementById("splitBtn");
+
+const loading =
+document.getElementById("loading");
+
+const progressBar =
+document.getElementById("progressBar");
+
+const progressText =
+document.getElementById("progressText");
+
+const status =
+document.getElementById("status");
+
+const videoInfo =
+document.getElementById("videoInfo");
+
+const clipsContainer =
+document.getElementById("clipsContainer");
+
+let currentJobId = null;
+
+function setStatus(message){
+
+status.textContent = message;
+
+}
+
+function setProgress(percent,text){
+
+progressBar.style.width =
+percent + "%";
+
+progressText.textContent =
+text;
+
+}
+
+function resetProgress(){
+
+setProgress(0,"Preparing...");
+
+loading.style.display="none";
+
+}
+
+function showProgress(){
+
+loading.style.display="block";
+
+}
+
+function clearResults(){
+
+clipsContainer.innerHTML="";
+
+}
+
+function disableButton(){
+
+splitBtn.disabled=true;
+
+}
+
+function enableButton(){
+
+splitBtn.disabled=false;
+
+}
+
+async function reportFrontendError(error){
+
+try{
+
+await fetch(
+
+`${API}/frontend-error`,
+
+{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":"application/json"
+
+},
+
+body:JSON.stringify({
+
+message:error.message||"Unknown",
+
+stack:error.stack||"",
+
+job_id:currentJobId
+
+})
+
+}
+
+);
+
+}catch(e){
+
+console.log("Unable to report frontend error.");
+
+}
+
+}
+
+window.onerror=function(message,source,line,column,error){
+
+reportFrontendError(
+
+error ||
+
+{
+
+message,
+
+line,
+
+column
+
+}
+
+);
+
+};
+
+splitBtn.addEventListener(
+
+"click",
+
+splitVideo
+
+);
 
 </script>
 
