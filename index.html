@@ -508,438 +508,118 @@ Free.
 
 const API = "https://mrayz-clipshortener-api.hf.space";
 
-const videoInput =
-document.getElementById("videoInput");
+// Elements
+const videoInput = document.getElementById("videoInput");
+const splitBtn = document.getElementById("splitBtn");
+const loading = document.getElementById("loading");
+const progressBar = document.getElementById("progressBar");
+const progressText = document.getElementById("progressText");
+const status = document.getElementById("status");
+const videoInfo = document.getElementById("videoInfo");
+const clipsContainer = document.getElementById("clipsContainer");
 
-const splitBtn =
-document.getElementById("splitBtn");
-
-const loading =
-document.getElementById("loading");
-
-const progressBar =
-document.getElementById("progressBar");
-
-const progressText =
-document.getElementById("progressText");
-
-const status =
-document.getElementById("status");
-
-const videoInfo =
-document.getElementById("videoInfo");
-
-const clipsContainer =
-document.getElementById("clipsContainer");
-
+// State
 let currentJobId = null;
+let selectedFile = null;
+let uploading = false;
 
-function setStatus(message){
+  function setStatus(message = "") {
+    status.textContent = message;
+}
 
-status.textContent = message;
+function showProgress() {
+    loading.style.display = "block";
+}
+
+function hideProgress() {
+    loading.style.display = "none";
+}
+
+function setProgress(percent, text = "") {
+    progressBar.style.width = percent + "%";
+    progressText.textContent = text;
+}
+
+function resetProgress() {
+    setProgress(0, "Preparing...");
+    hideProgress();
+}
+
+function disableButton() {
+    splitBtn.disabled = true;
+}
+
+function enableButton() {
+    splitBtn.disabled = false;
+}
+
+function clearResults() {
+
+    clipsContainer.innerHTML = `
+        <p class="small">
+            Your generated clips will appear here.
+        </p>
+    `;
 
 }
 
-function setProgress(percent,text){
+  async function reportFrontendError(error) {
 
-progressBar.style.width =
-percent + "%";
+    try {
 
-progressText.textContent =
-text;
+        await fetch(`${API}/frontend-error`, {
 
-}
+            method: "POST",
 
-function resetProgress(){
+            headers: {
+                "Content-Type": "application/json"
+            },
 
-setProgress(0,"Preparing...");
+            body: JSON.stringify({
 
-loading.style.display="none";
+                message: error.message || "Unknown",
 
-}
+                stack: error.stack || "",
 
-function showProgress(){
+                job_id: currentJobId
 
-loading.style.display="block";
+            })
 
-}
+        });
 
-function clearResults(){
+    }
 
-clipsContainer.innerHTML="";
+    catch {
 
-}
+        console.log("Unable to report frontend error.");
 
-function disableButton(){
-
-splitBtn.disabled=true;
+    }
 
 }
 
-function enableButton(){
+window.onerror = function (
+    message,
+    source,
+    line,
+    column,
+    error
+) {
 
-splitBtn.disabled=false;
+    reportFrontendError(
 
-}
+        error ||
 
-async function reportFrontendError(error){
+        {
+            message,
+            source,
+            line,
+            column
+        }
 
-try{
-
-await fetch(
-
-`${API}/frontend-error`,
-
-{
-
-method:"POST",
-
-headers:{
-
-"Content-Type":"application/json"
-
-},
-
-body:JSON.stringify({
-
-message:error.message||"Unknown",
-
-stack:error.stack||"",
-
-job_id:currentJobId
-
-})
-
-}
-
-);
-
-}catch(e){
-
-console.log("Unable to report frontend error.");
-
-}
-
-}
-
-window.onerror=function(message,source,line,column,error){
-
-reportFrontendError(
-
-error ||
-
-{
-
-message,
-
-line,
-
-column
-
-}
-
-);
+    );
 
 };
 
-// splitBtn.addEventListener(
-//     "click",
-//     splitVideo
-// );
-
-  videoInput.addEventListener(
-"change",
-async ()=>{
-
-  async function splitVideo(){
-
-const file =
-videoInput.files[0];
-
-if(!file){
-
-alert("Please select a video.");
-
-return;
-
-}
-
-    splitBtn.addEventListener(
-
-"click",
-
-splitVideo
-
-);
-
-
-disableButton();
-
-showProgress();
-
-clearResults();
-
-setStatus("Uploading...");
-
-setProgress(10,"Preparing upload...");
-
-try{
-
-const formData =
-new FormData();
-
-formData.append(
-"file",
-file
-);
-
-setProgress(
-30,
-"Uploading..."
-);
-
-const response =
-await fetch(
-
-`${API}/split?segment_seconds=15`,
-
-{
-
-method:"POST",
-
-body:formData
-
-}
-
-);
-
-if(!response.ok){
-
-throw new Error(
-
-await response.text()
-
-);
-
-}
-
-setProgress(
-80,
-"Generating clips..."
-);
-
-const data =
-await response.json();
-
-currentJobId =
-data.job_id;
-
-  console.log("Job ID:", data.job_id);
-console.log("API Response:", data);
-
-setProgress(
-100,
-"Finished"
-);
-
-setStatus(
-
-`${data.clips.length} clip(s) generated.`
-
-);
-
-clipsContainer.innerHTML="";
-
-data.clips.forEach(
-
-(name,index)=>{
-
-const card =
-document.createElement("div");
-
-card.className="clip";
-
-card.innerHTML=`
-
-<h3>
-
-Clip ${index+1}
-
-</h3>
-
-<br>
-
-<a
-
-href="${API}/download/${name}"
-
-target="_blank"
-
->
-
-<button>
-
-Download Clip
-
-</button>
-
-</a>
-
-`;
-
-clipsContainer.appendChild(card);
-
-}
-
-);
-
-if(data.job_id){
-
-const zip =
-document.createElement("div");
-
-zip.className="clip";
-
-zip.innerHTML=`
-
-<a
-
-href="${API}/download-all/${currentJobId}"
-
-target="_blank"
-
->
-
-<button>
-
-Download All ZIP
-
-</button>
-
-</a>
-
-`;
-
-clipsContainer.appendChild(zip);
-
-}
-
-}catch(error){
-
-console.error(error);
-
-await reportFrontendError(error);
-
-setStatus("Failed");
-
-alert(error.message);
-
-}
-
-finally{
-
-enableButton();
-
-setTimeout(
-
-resetProgress,
-
-1200
-
-);
-
-}
-
-}
-
-const file =
-videoInput.files[0];
-
-if(!file){
-
-videoInfo.style.display="none";
-
-return;
-
-}
-
-const sizeMB =
-(file.size/1024/1024).toFixed(2);
-
-const url =
-URL.createObjectURL(file);
-
-const video =
-document.createElement("video");
-
-video.preload="metadata";
-
-video.src=url;
-
-video.onloadedmetadata=()=>{
-
-const duration =
-Math.floor(video.duration);
-
-const hours =
-Math.floor(duration/3600);
-
-const minutes =
-Math.floor((duration%3600)/60);
-
-const seconds =
-duration%60;
-
-let length="";
-
-if(hours>0){
-
-length=
-`${hours}h ${minutes}m ${seconds}s`;
-
-}else{
-
-length=
-`${minutes}m ${seconds}s`;
-
-}
-
-videoInfo.innerHTML=`
-
-<strong>Selected File</strong>
-
-<br><br>
-
-📄 ${file.name}
-
-<br><br>
-
-💾 ${sizeMB} MB
-
-<br><br>
-
-⏱ ${length}
-
-`;
-
-videoInfo.style.display="block";
-
-URL.revokeObjectURL(url);
-
-};
-
-video.onerror=()=>{
-
-videoInfo.innerHTML=
-"Unable to read video information.";
-
-videoInfo.style.display="block";
-
-URL.revokeObjectURL(url);
-
-};
-
-});
 
 </script>
 
