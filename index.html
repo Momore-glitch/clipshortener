@@ -421,6 +421,8 @@ console.log("Response status:", res.status);
         }
 
         const data = await res.json();
+      
+      clearTimeout(timeout);
 
       setProgress(80,"Generating clips...");
 
