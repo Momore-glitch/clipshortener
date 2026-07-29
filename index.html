@@ -284,6 +284,71 @@ function setProgress(percent,text){
 
 }
 
+  videoInput.addEventListener(
+"change",
+async ()=>{
+
+const file =
+videoInput.files[0];
+
+if(!file){
+
+videoInfo.style.display="none";
+
+return;
+
+}
+
+const sizeMB =
+(file.size/1024/1024)
+.toFixed(2);
+
+const url =
+URL.createObjectURL(file);
+
+const video =
+document.createElement("video");
+
+video.preload="metadata";
+
+video.src=url;
+
+video.onloadedmetadata=()=>{
+
+const seconds =
+Math.floor(video.duration);
+
+const mins =
+Math.floor(seconds/60);
+
+const secs =
+seconds%60;
+
+videoInfo.innerHTML=`
+
+<b>Selected</b><br>
+${file.name}
+
+<br><br>
+
+<b>Size</b><br>
+${sizeMB} MB
+
+<br><br>
+
+<b>Duration</b><br>
+${mins}m ${secs}s
+
+`;
+
+videoInfo.style.display="block";
+
+URL.revokeObjectURL(url);
+
+};
+
+});
+
 async function splitVideo(){
 
     const fileInput = document.getElementById("videoInput");
