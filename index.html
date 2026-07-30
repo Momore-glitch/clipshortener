@@ -508,7 +508,8 @@ Free.
 
 const API = "https://mrayz-clipshortener-api.hf.space";
 
-// Elements
+/* ------------------ Elements ------------------ */
+
 const videoInput = document.getElementById("videoInput");
 const splitBtn = document.getElementById("splitBtn");
 const loading = document.getElementById("loading");
@@ -518,52 +519,79 @@ const status = document.getElementById("status");
 const videoInfo = document.getElementById("videoInfo");
 const clipsContainer = document.getElementById("clipsContainer");
 
-// State
-let currentJobId = null;
+/* ------------------ State ------------------ */
+
 let selectedFile = null;
+let currentJobId = null;
 let uploading = false;
 
-  function setStatus(message = "") {
-    status.textContent = message;
+/* ------------------ UI ------------------ */
+
+function setStatus(text = "") {
+
+    status.textContent = text;
+
 }
 
 function showProgress() {
+
     loading.style.display = "block";
+
 }
 
 function hideProgress() {
+
     loading.style.display = "none";
+
 }
 
 function setProgress(percent, text = "") {
+
     progressBar.style.width = percent + "%";
+
     progressText.textContent = text;
+
 }
 
 function resetProgress() {
-    setProgress(0, "Preparing...");
+
+    progressBar.style.width = "0%";
+
+    progressText.textContent = "Preparing...";
+
     hideProgress();
+
 }
 
 function disableButton() {
+
     splitBtn.disabled = true;
+
 }
 
 function enableButton() {
+
     splitBtn.disabled = false;
+
 }
 
 function clearResults() {
 
     clipsContainer.innerHTML = `
-        <p class="small">
-            Your generated clips will appear here.
-        </p>
-    `;
+
+<p class="small">
+
+Your generated clips will appear here.
+
+</p>
+
+`;
 
 }
 
-  async function reportFrontendError(error) {
+  /* ------------------ Error Reporting ------------------ */
+
+async function reportFrontendError(error) {
 
     try {
 
@@ -577,9 +605,9 @@ function clearResults() {
 
             body: JSON.stringify({
 
-                message: error.message || "Unknown",
+                message: error?.message || "Unknown",
 
-                stack: error.stack || "",
+                stack: error?.stack || "",
 
                 job_id: currentJobId
 
@@ -620,60 +648,130 @@ window.onerror = function (
 
 };
 
-videoInput.addEventListener("change", () => {
+/* ------------------ File Preview ------------------ */
 
-    // Reset previous session
+videoInput.addEventListener("change", () => {
 
     currentJobId = null;
 
-    setStatus("");
+    selectedFile = videoInput.files[0];
 
     resetProgress();
 
     clearResults();
 
-    selectedFile = videoInput.files[0];
+    setStatus("");
 
     if (!selectedFile) {
 
         videoInfo.style.display = "none";
+
         return;
 
     }
 
-    // Keep the rest of your preview code unchanged...
+    const sizeMB =
+        (selectedFile.size / 1024 / 1024).toFixed(2);
+
+    const url =
+        URL.createObjectURL(selectedFile);
+
+    const video =
+        document.createElement("video");
+
+    video.preload = "metadata";
+
+    video.src = url;
+
+    video.onloadedmetadata = () => {
+
+        const total =
+            Math.floor(video.duration);
+
+        const h =
+            Math.floor(total / 3600);
+
+        const m =
+            Math.floor((total % 3600) / 60);
+
+        const s =
+            total % 60;
+
+        const duration =
+            h > 0
+                ? `${h}h ${m}m ${s}s`
+                : `${m}m ${s}s`;
+
+        videoInfo.innerHTML = `
+
+<strong>Selected File</strong>
+
+<br><br>
+
+📄 ${selectedFile.name}
+
+<br><br>
+
+💾 ${sizeMB} MB
+
+<br><br>
+
+⏱ ${duration}
+
+`;
+
+        videoInfo.style.display = "block";
+
+        URL.revokeObjectURL(url);
+
+    };
+
+    video.onerror = () => {
+
+        videoInfo.innerHTML =
+            "Unable to read video information.";
+
+        videoInfo.style.display = "block";
+
+        URL.revokeObjectURL(url);
+
+    };
+
 });
 
-  async function splitVideo() {
+  /* ------------------ Upload ------------------ */
+
+async function splitVideo() {
 
     if (uploading) {
 
-    setStatus("A video is already being processed...");
+        setStatus("Already processing a video...");
 
-    return;
+        return;
 
     }
 
     if (!selectedFile) {
 
         alert("Please select a video first.");
+
         return;
 
     }
 
     uploading = true;
 
+    currentJobId = null;
+
     disableButton();
 
-    clearResults();
-
     showProgress();
+
+    clearResults();
 
     setStatus("Uploading video...");
 
     setProgress(5, "Preparing...");
-
-    currentJobId = null;
 
     try {
 
@@ -688,8 +786,11 @@ videoInput.addEventListener("change", () => {
             `${API}/split?segment_seconds=15`,
 
             {
+
                 method: "POST",
+
                 body: formData
+
             }
 
         );
@@ -704,25 +805,15 @@ videoInput.addEventListener("change", () => {
 
         const data = await response.json();
 
-        if (!data.success) {
-
-            throw new Error(
-
-                data.message ||
-
-                "The server returned an unsuccessful response."
-
-            );
-
-        }
+        console.log(data);
 
         currentJobId = data.job_id || null;
 
-        setProgress(100, "Completed");
+        setProgress(100, "Finished");
 
         setStatus(
 
-            `${data.clips.length} clip(s) created successfully.`
+            `${data.clips.length} clip(s) created.`
 
         );
 
@@ -736,28 +827,25 @@ videoInput.addEventListener("change", () => {
 
         await reportFrontendError(error);
 
+        let message = error.message;
+
+        try {
+
+            const json = JSON.parse(error.message);
+
+            if (json.detail) {
+
+                message = json.detail;
+
+            }
+
+        }
+
+        catch {}
+
         setStatus("Upload failed");
 
-        let message = "Something went wrong.";
-
-try {
-
-    const parsed = JSON.parse(error.message);
-
-    message = parsed.detail || message;
-
-}
-catch {
-
-    if (error.message) {
-
-        message = error.message;
-
-    }
-
-}
-
-alert(message);
+        alert(message);
 
     }
 
@@ -767,33 +855,29 @@ alert(message);
 
         enableButton();
 
-        setTimeout(
-
-            resetProgress,
-
-            1000
-
-        );
+        setTimeout(resetProgress,1000);
 
     }
 
-  }
+}
 
-  function renderResults(data) {
+  /* ------------------ Results ------------------ */
+
+function renderResults(data) {
 
     clipsContainer.innerHTML = "";
 
-    if (!Array.isArray(data.clips) || data.clips.length === 0) {
+    if (!data.clips || data.clips.length === 0) {
 
         clipsContainer.innerHTML = `
 
-            <p class="small">
+<p class="small">
 
-                No clips were generated.
+No clips were generated.
 
-            </p>
+</p>
 
-        `;
+`;
 
         return;
 
@@ -807,24 +891,24 @@ alert(message);
 
         card.innerHTML = `
 
-            <h3>Clip ${index + 1}</h3>
+<h3>Clip ${index + 1}</h3>
 
-            <br>
+<br>
 
-            <a
-                href="${API}/download/${encodeURIComponent(clipName)}"
-                target="_blank"
-            >
+<a
+href="${API}/download/${encodeURIComponent(clipName)}"
+target="_blank"
+>
 
-                <button>
+<button>
 
-                    Download Clip
+Download Clip
 
-                </button>
+</button>
 
-            </a>
+</a>
 
-        `;
+`;
 
         clipsContainer.appendChild(card);
 
@@ -832,58 +916,50 @@ alert(message);
 
     if (currentJobId) {
 
-        renderZipButton();
+        const zipCard = document.createElement("div");
+
+        zipCard.className = "clip";
+
+        zipCard.innerHTML = `
+
+<h3>
+
+Download Everything
+
+</h3>
+
+<br>
+
+<a
+href="${API}/download-all/${encodeURIComponent(currentJobId)}"
+target="_blank"
+>
+
+<button>
+
+Download All ZIP
+
+</button>
+
+</a>
+
+`;
+
+        clipsContainer.appendChild(zipCard);
 
     }
 
-  }
+}
 
-  function renderZipButton() {
+/* ------------------ Startup ------------------ */
 
-    const zipCard = document.createElement("div");
-
-    zipCard.className = "clip";
-
-    zipCard.innerHTML = `
-
-        <h3>
-
-            Download Everything
-
-        </h3>
-
-        <br>
-
-        <a
-            href="${API}/download-all/${encodeURIComponent(currentJobId)}"
-            target="_blank"
-        >
-
-            <button>
-
-                Download All ZIP
-
-            </button>
-
-        </a>
-
-    `;
-
-    clipsContainer.appendChild(zipCard);
-
-  }
-
-  splitBtn.addEventListener(
-    "click",
-    splitVideo
-);
+splitBtn.addEventListener("click", splitVideo);
 
 resetProgress();
 
-setStatus("");
-
 clearResults();
 
+setStatus("");
 
 </script>
 
