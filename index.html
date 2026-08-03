@@ -339,6 +339,106 @@ padding:15px;
 
   }
 
+  #downloadContainer{
+
+margin-top:30px;
+
+display:flex;
+
+flex-direction:column;
+
+gap:20px;
+
+}
+
+#clipGrid{
+
+display:grid;
+
+grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+
+gap:15px;
+
+}
+
+.clipCard{
+
+background:#171717;
+
+border-radius:16px;
+
+padding:18px;
+
+border:1px solid rgba(255,255,255,.08);
+
+transition:.25s;
+
+}
+
+.clipCard:hover{
+
+transform:translateY(-3px);
+
+}
+
+.clipTitle{
+
+font-weight:700;
+
+margin-bottom:12px;
+
+}
+
+.clipButton{
+
+display:block;
+
+text-align:center;
+
+padding:12px;
+
+border-radius:12px;
+
+background:linear-gradient(90deg,#ff00c8,#7a5cff);
+
+color:white;
+
+text-decoration:none;
+
+font-weight:bold;
+
+}
+
+.downloadAllCard{
+
+padding:20px;
+
+border-radius:18px;
+
+background:#1d1d1d;
+
+}
+
+.primaryBtn{
+
+display:block;
+
+text-align:center;
+
+padding:16px;
+
+border-radius:14px;
+
+background:linear-gradient(90deg,#ff00c8,#7a5cff);
+
+font-weight:bold;
+
+text-decoration:none;
+
+color:white;
+
+}
+
 </style>
 
 </head>
@@ -863,25 +963,51 @@ async function splitVideo() {
 
   /* ------------------ Results ------------------ */
 
-function renderResults(data) {
+function renderDownloads(data);
 
-    clipsContainer.innerHTML = "";
+downloadContainer.classList.remove("hidden");
 
-    if (!data.clips || data.clips.length === 0) {
+clipSummary.textContent=`${clips.length} clips generated`;
 
-        clipsContainer.innerHTML = `
+clipGrid.innerHTML="";
 
-<p class="small">
+clips.forEach((clip,index)=>{
 
-No clips were generated.
+clipGrid.innerHTML+=`
 
-</p>
+<div class="clipCard">
+
+<div class="clipTitle">
+
+Clip ${index+1}
+
+</div>
+
+<a
+
+class="clipButton"
+
+href="${API}/download/${clip}"
+
+target="_blank"
+
+>
+
+Download
+
+</a>
+
+</div>
 
 `;
 
-        return;
+});
 
-    }
+downloadZipBtn.href=
+
+`${API}/download-all/${currentJobId}`;
+
+}
 
     data.clips.forEach((clipName, index) => {
 
