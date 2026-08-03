@@ -631,7 +631,10 @@ const progressBar = document.getElementById("progressBar");
 const progressText = document.getElementById("progressText");
 const status = document.getElementById("status");
 const videoInfo = document.getElementById("videoInfo");
-const clipsContainer = document.getElementById("clipsContainer");
+const downloadContainer = document.getElementById("downloadContainer");
+const clipSummary = document.getElementById("clipSummary");
+const clipGrid = document.getElementById("clipGrid");
+const downloadZipBtn = document.getElementById("downloadZipBtn");
 
 /* ------------------ State ------------------ */
 
@@ -689,17 +692,13 @@ function enableButton() {
 
 }
 
-function clearResults() {
+function clearResults(){
 
-    clipsContainer.innerHTML = `
+    downloadContainer.style.display = "none";
 
-<p class="small">
+    clipGrid.innerHTML = "";
 
-Your generated clips will appear here.
-
-</p>
-
-`;
+    clipSummary.textContent = "";
 
 }
 
@@ -977,17 +976,20 @@ async function splitVideo() {
 
   /* ------------------ Results ------------------ */
 
-function renderDownloads(data);
+/* ------------------ Results ------------------ */
 
-downloadContainer.classList.remove("hidden");
+function renderResults(data){
 
-clipSummary.textContent=`${clips.length} clips generated`;
+    downloadContainer.style.display = "flex";
 
-clipGrid.innerHTML="";
+    clipSummary.textContent =
+        `${data.clips.length} clips generated`;
 
-clips.forEach((clip,index)=>{
+    clipGrid.innerHTML = "";
 
-clipGrid.innerHTML+=`
+    data.clips.forEach((clip,index)=>{
+
+        clipGrid.innerHTML += `
 
 <div class="clipCard">
 
@@ -998,14 +1000,9 @@ Clip ${index+1}
 </div>
 
 <a
-
 class="clipButton"
-
-href="${API}/download/${clip}"
-
-target="_blank"
-
->
+href="${API}/download/${encodeURIComponent(clip)}"
+target="_blank">
 
 Download
 
@@ -1015,80 +1012,10 @@ Download
 
 `;
 
-});
-
-downloadZipBtn.href=
-
-`${API}/download-all/${currentJobId}`;
-
-}
-
-    data.clips.forEach((clipName, index) => {
-
-        const card = document.createElement("div");
-
-        card.className = "clip";
-
-        card.innerHTML = `
-
-<h3>Clip ${index + 1}</h3>
-
-<br>
-
-<a
-href="${API}/download/${encodeURIComponent(clipName)}"
-target="_blank"
->
-
-<button>
-
-Download Clip
-
-</button>
-
-</a>
-
-`;
-
-        clipsContainer.appendChild(card);
-
     });
 
-    if (currentJobId) {
-
-        const zipCard = document.createElement("div");
-
-        zipCard.className = "clip";
-
-        zipCard.innerHTML = `
-
-<h3>
-
-Download Everything
-
-</h3>
-
-<br>
-
-<a
-href="#"
-onclick="alert('${API}/download-all/${encodeURIComponent(currentJobId)}');return false;"
-target="_blank"
->
-
-<button>
-
-Download All ZIP
-
-</button>
-
-</a>
-
-`;
-
-        clipsContainer.appendChild(zipCard);
-
-    }
+    downloadZipBtn.href =
+        `${API}/download-all/${encodeURIComponent(currentJobId)}`;
 
 }
 
