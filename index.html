@@ -521,7 +521,7 @@ Preparing...
 
 <h2>Your Clips</h2>
 
-<div id="downloadContainer" class="hidden">
+<div id="downloadContainer" style="display:none;">
 
     <h2>🎉 Clips Ready</h2>
 
@@ -922,6 +922,8 @@ async function splitVideo() {
 
         currentJobId = data.job_id || null;
 
+      console.log("Split response:", data);
+
         setProgress(100, "Finished");
 
         setStatus(
@@ -978,9 +980,15 @@ async function splitVideo() {
 
 /* ------------------ Results ------------------ */
 
-function renderResults(data){
+function if (!data.clips || !Array.isArray(data.clips)) {
 
-    downloadContainer.style.display = "flex";
+    throw new Error("Backend returned invalid clip data.");
+
+}
+
+renderResults(data);
+
+  downloadContainer.style.display = "block";
 
     clipSummary.textContent =
         `${data.clips.length} clips generated`;
