@@ -439,6 +439,12 @@ color:white;
 
 }
 
+  .hidden{
+
+display:none !important;
+
+}
+
 </style>
 
 </head>
@@ -521,7 +527,7 @@ Preparing...
 
 <h2>Your Clips</h2>
 
-<div id="downloadContainer" style="display:none;">
+<div id="downloadContainer" style="display;">
 
     <h2>🎉 Clips Ready</h2>
 
@@ -694,7 +700,7 @@ function enableButton() {
 
 function clearResults(){
 
-    downloadContainer.style.display = "none";
+  downloadContainer.classList.add("hidden");
 
     clipGrid.innerHTML = "";
 
@@ -894,19 +900,31 @@ async function splitVideo() {
 
         setProgress(25, "Uploading...");
 
-        const response = await fetch(
+        const controller = new AbortController();
 
-            `${API}/split?segment_seconds=15`,
+const timeout = setTimeout(() => {
 
-            {
+    controller.abort();
 
-                method: "POST",
+}, 300000); // 5 minutes
 
-                body: formData
+const response = await fetch(
 
-            }
+    `${API}/split?segment_seconds=15`,
 
-        );
+    {
+
+        method: "POST",
+
+        body: formData,
+
+        signal: controller.signal
+
+    }
+
+);
+
+clearTimeout(timeout);
 
         if (!response.ok) {
 
@@ -916,7 +934,36 @@ async function splitVideo() {
 
         setProgress(75, "Generating clips...");
 
-        const data = await response.json();
+      
+
+      const data = await response.json();
+
+console.log("==========");
+console.log("Split Complete");
+console.log(data);
+console.log("==========");
+
+currentJobId = data.job_id || null;
+
+setProgress(100, "Finished");
+
+      if (
+
+    !data ||
+
+    data.success !== true ||
+
+    !Array.isArray(data.clips)
+
+){
+
+    throw new Error(
+
+        "Invalid response received from the server."
+
+    );
+
+      }
 
         console.log(data);
 
@@ -939,6 +986,20 @@ async function splitVideo() {
     catch (error) {
 
         console.error(error);
+
+      if (error.name === "AbortError") {
+
+    setStatus("Processing timed out.");
+
+    alert(
+
+        "The request exceeded 5 minutes and was cancelled."
+
+    );
+
+    return;
+
+      }
 
         await reportFrontendError(error);
 
@@ -986,9 +1047,20 @@ function if (!data.clips || !Array.isArray(data.clips)) {
 
 }
 
-renderResults(data);
+  setStatus(
 
-  downloadContainer.style.display = "block";
+    "Rendering clips..."
+
+);
+
+renderResults(data);
+  setStatus(
+
+    "Completed successfully."
+
+);
+
+  downloadContainer.classList.remove("hidden");
 
     clipSummary.textContent =
         `${data.clips.length} clips generated`;
