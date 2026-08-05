@@ -527,7 +527,7 @@ Preparing...
 
 <h2>Your Clips</h2>
 
-<div id="downloadContainer" style="display;">
+<div id="downloadContainer" class="hidden">
 
     <h2>🎉 Clips Ready</h2>
 
@@ -987,7 +987,7 @@ console.log("==========");
 
 currentJobId = data.job_id || null;
 
-setProgress(100, "Finished");
+
 
       progressText.textContent =
 
@@ -1011,10 +1011,8 @@ setProgress(100, "Finished");
 
       }
 
-        console.log(data);
 
-        currentJobId = data.job_id || null;
-
+      
       console.log("Split response:", data);
 
         setProgress(100, "Finished");
