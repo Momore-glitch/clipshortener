@@ -648,6 +648,10 @@ let selectedFile = null;
 let currentJobId = null;
 let uploading = false;
 
+  let progressInterval = null;
+
+let fakeProgress = 0;
+
 /* ------------------ UI ------------------ */
 
 function setStatus(text = "") {
@@ -676,7 +680,41 @@ function setProgress(percent, text = "") {
 
 }
 
+  function startFakeProgress(){
+
+    clearInterval(progressInterval);
+
+    fakeProgress = 5;
+
+    progressInterval = setInterval(()=>{
+
+        if(fakeProgress >= 90){
+
+            clearInterval(progressInterval);
+
+            return;
+
+        }
+
+        fakeProgress += 1;
+
+        setProgress(
+
+            fakeProgress,
+
+            "Processing video..."
+
+        );
+
+    },700);
+
+  }
+
 function resetProgress() {
+
+  clearInterval(progressInterval);
+
+fakeProgress = 0;
 
     progressBar.style.width = "0%";
 
@@ -886,6 +924,8 @@ async function splitVideo() {
 
     showProgress();
 
+  startFakeProgress();
+
     clearResults();
 
     setStatus("Uploading video...");
@@ -938,6 +978,8 @@ clearTimeout(timeout);
 
       const data = await response.json();
 
+      clearInterval(progressInterval);
+
 console.log("==========");
 console.log("Split Complete");
 console.log(data);
@@ -946,6 +988,10 @@ console.log("==========");
 currentJobId = data.job_id || null;
 
 setProgress(100, "Finished");
+
+      progressText.textContent =
+
+"Ready to download";
 
       if (
 
