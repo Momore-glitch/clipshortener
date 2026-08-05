@@ -1087,26 +1087,11 @@ setProgress(100, "Finished");
 
 /* ------------------ Results ------------------ */
 
-function if (!data.clips || !Array.isArray(data.clips)) {
+function renderResults(data){
 
-    throw new Error("Backend returned invalid clip data.");
+    downloadContainer.classList.remove("hidden");
 
-}
-
-  setStatus(
-
-    "Rendering clips..."
-
-);
-
-renderResults(data);
-  setStatus(
-
-    "Completed successfully."
-
-);
-
-  downloadContainer.classList.remove("hidden");
+    setStatus("Rendering clips...");
 
     clipSummary.textContent =
         `${data.clips.length} clips generated`;
@@ -1116,13 +1101,9 @@ renderResults(data);
     data.clips.forEach((clip,index)=>{
 
         clipGrid.innerHTML += `
-
 <div class="clipCard">
-
 <div class="clipTitle">
-
 Clip ${index+1}
-
 </div>
 
 <a
@@ -1135,7 +1116,6 @@ Download
 </a>
 
 </div>
-
 `;
 
     });
@@ -1143,7 +1123,10 @@ Download
     downloadZipBtn.href =
         `${API}/download-all/${encodeURIComponent(currentJobId)}`;
 
+    setStatus("Completed successfully.");
+
 }
+
 
 /* ------------------ Startup ------------------ */
 
