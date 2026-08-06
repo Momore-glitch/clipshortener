@@ -1059,6 +1059,8 @@ clearTimeout(timeout);
 
         }
 
+      setStatus("Splitting video...");
+
         setProgress(75, "Generating clips...");
 
       
@@ -1111,6 +1113,8 @@ currentJobId = data.job_id || null;
         );
 
         renderResults(data);
+
+      setStatus("Downloads ready.");
 
     }
 
