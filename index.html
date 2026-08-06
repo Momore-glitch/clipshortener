@@ -471,30 +471,43 @@ Just upload and download.
 
 </div>
 
-
-<div class="card">
+<div class="card" id="uploadCard">
 
 <h2>Upload Video</h2>
 
 <p class="small">
 
 Supported formats:
-
 MP4 • MOV • AVI • MKV • WEBM
 
 </p>
 
 <input
-
 type="file"
-
 id="videoInput"
-
-accept="video/*"
-
->
+accept="video/*">
 
 <div id="videoInfo"></div>
+
+<div id="uploadStats">
+
+<div>
+
+<strong>File Size</strong>
+
+<p id="fileSize">—</p>
+
+</div>
+
+<div>
+
+<strong>Duration</strong>
+
+<p id="fileDuration">—</p>
+
+</div>
+
+</div>
 
 <button id="splitBtn">
 
@@ -515,6 +528,10 @@ Create Clips
 Preparing...
 
 </p>
+
+<p id="status"></p>
+
+</div>
 
 </div>
 
