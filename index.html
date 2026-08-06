@@ -956,6 +956,12 @@ videoInput.addEventListener("change", () => {
 
         videoInfo.style.display = "block";
 
+      document.getElementById("fileSize").textContent =
+`${sizeMB} MB`;
+
+document.getElementById("fileDuration").textContent =
+duration;
+
         URL.revokeObjectURL(url);
 
     };
