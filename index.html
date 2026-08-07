@@ -1155,191 +1155,162 @@ duration;
 
   /* ------------------ Upload ------------------ */
 
-async function splitVideo() {
+document.getElementById("splitBtn").addEventListener("click", splitVideo);
+  
+  async function splitVideo() {
 
-    if (uploading) {
+    const fileInput = document.getElementById("videoInput");
+    const btn = document.getElementById("splitBtn");
+    const loading = document.getElementById("loading");
+    const clipsContainer = document.getElementById("clipsContainer");
 
-        setStatus("Already processing a video...");
+    const file = fileInput.files[0];
 
+    if (!file) {
+        alert("Please select a video file.");
         return;
-
     }
 
-    if (!selectedFile) {
-
-        alert("Please select a video first.");
-
-        return;
-
-    }
-
-    uploading = true;
-
+    // Reset previous job
     currentJobId = null;
 
-    disableButton();
+    btn.disabled = true;
 
-    showProgress();
+    if (loading) {
+        loading.style.display = "block";
+    }
 
-  startFakeProgress();
+    clipsContainer.innerHTML = "";
 
-    clearResults();
-
-    setStatus("Uploading video...");
-
-    setProgress(5, "Preparing...");
+    setStatus("Preparing video...");
 
     try {
 
+        // ---------------------------------------------
+        // CREATE FORM DATA
+        // ---------------------------------------------
+
         const formData = new FormData();
 
-        formData.append("file", selectedFile);
+        formData.append("file", file);
 
-        setProgress(25, "Uploading...");
+        setStatus("Uploading video...");
 
-        const controller = new AbortController();
+        // ---------------------------------------------
+        // SEND VIDEO TO BACKEND
+        // ---------------------------------------------
 
-const timeout = setTimeout(() => {
+        const response = await fetch(
+            `${API}/split?segment_seconds=15`,
+            {
+                method: "POST",
+                body: formData
+            }
+        );
 
-    controller.abort();
-
-}, 300000); // 5 minutes
-
-const response = await fetch(
-
-    `${API}/split?segment_seconds=15`,
-
-    {
-
-        method: "POST",
-
-        body: formData,
-
-        signal: controller.signal
-
-    }
-
-);
-
-clearTimeout(timeout);
+        // ---------------------------------------------
+        // CHECK SERVER RESPONSE
+        // ---------------------------------------------
 
         if (!response.ok) {
 
-            throw new Error(await response.text());
+            let message = "Server failed to process the video.";
 
+            try {
+                const errorData = await response.json();
+
+                if (typeof errorData.detail === "string") {
+                    message = errorData.detail;
+                } else if (errorData.detail?.message) {
+                    message = errorData.detail.message;
+                }
+
+            } catch (_) {
+                // Keep default error message
+            }
+
+            throw new Error(message);
         }
 
-      setStatus("Splitting video...");
+        setStatus("Processing clips...");
 
-        setProgress(75, "Generating clips...");
+        const data = await response.json();
 
-      
+        // ---------------------------------------------
+        // SAVE JOB ID
+        // ---------------------------------------------
 
-      const data = await response.json();
+        currentJobId = data.job_id || null;
 
-      clearInterval(progressInterval);
+        // ---------------------------------------------
+        // VALIDATE CLIPS
+        // ---------------------------------------------
 
-console.log("==========");
-console.log("Split Complete");
-console.log(data);
-console.log("==========");
+        if (
+            !data.clips ||
+            !Array.isArray(data.clips) ||
+            data.clips.length === 0
+        ) {
+            throw new Error("The server created no clips.");
+        }
 
-currentJobId = data.job_id || null;
-
-
-
-      progressText.textContent =
-
-"Ready to download";
-
-      if (
-
-    !data ||
-
-    data.success !== true ||
-
-    !Array.isArray(data.clips)
-
-){
-
-    throw new Error(
-
-        "Invalid response received from the server."
-
-    );
-
-      }
-
-
-      
-      console.log("Split response:", data);
-
-        setProgress(100, "Finished");
+        // ---------------------------------------------
+        // DISPLAY RESULT
+        // ---------------------------------------------
 
         setStatus(
-
-            `${data.clips.length} clip(s) created.`
-
+            `Generated ${data.clips.length} clip${data.clips.length === 1 ? "" : "s"}.`
         );
 
-        renderResults(data);
+        data.clips.forEach((name, index) => {
 
-      setStatus("Downloads ready.");
+            const div = document.createElement("div");
 
-    }
+            div.className = "clip";
 
-    catch (error) {
+            const label = document.createElement("p");
 
-        console.error(error);
+            label.textContent = `Clip ${index + 1}`;
 
-      if (error.name === "AbortError") {
+            const link = document.createElement("a");
 
-    setStatus("Processing timed out.");
+            link.href = `${API}/download/${encodeURIComponent(name)}`;
+            link.target = "_blank";
+            link.rel = "noopener";
 
-    alert(
+            const downloadButton = document.createElement("button");
 
-        "The request exceeded 5 minutes and was cancelled."
+            downloadButton.type = "button";
+            downloadButton.textContent = "Download";
 
-    );
+            link.appendChild(downloadButton);
 
-    return;
+            div.appendChild(label);
+            div.appendChild(link);
 
-      }
+            clipsContainer.appendChild(div);
+
+        });
+
+    } catch (error) {
+
+        console.error("ClipShortener error:", error);
 
         await reportFrontendError(error);
 
-        let message = error.message;
+        setStatus("Something went wrong.");
 
-        try {
+        alert(error.message || "Unable to process video.");
 
-            const json = JSON.parse(error.message);
+    } finally {
 
-            if (json.detail) {
+        btn.disabled = false;
 
-                message = json.detail;
-
-            }
-
+        if (loading) {
+            loading.style.display = "none";
         }
 
-        catch {}
-
-        setStatus("Upload failed");
-
-        alert(message);
-
     }
-
-    finally {
-
-        uploading = false;
-
-        enableButton();
-
-        setTimeout(resetProgress,1000);
-
-    }
-
 }
 
   /* ------------------ Results ------------------ */
