@@ -505,6 +505,194 @@ margin-top:15px;
 
 }
 
+  /* =========================================================
+   MOBILE RESPONSIVE FIX
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    html,
+    body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    * {
+        box-sizing: border-box;
+        max-width: 100%;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 20px 16px;
+        overflow-x: hidden;
+    }
+
+    .hero {
+        width: 100%;
+        max-width: 100%;
+        text-align: center;
+    }
+
+    .hero h1 {
+        font-size: 2.2rem;
+        line-height: 1.1;
+        overflow-wrap: anywhere;
+    }
+
+    .hero p {
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    .card {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        overflow: hidden;
+    }
+
+    /* FIX: feature cards must stack vertically */
+    .features,
+    .featureGrid,
+    .featuresGrid,
+    .feature-container,
+    .features-container {
+        display: grid;
+        grid-template-columns: 1fr !important;
+        width: 100%;
+        max-width: 100%;
+        gap: 16px;
+    }
+
+    /* Prevent individual feature cards from forcing
+       the page wider than the screen */
+    .feature-card,
+    .featureCard,
+    .features > *,
+    .featureGrid > *,
+    .featuresGrid > *,
+    .feature-container > *,
+    .features-container > * {
+        width: 100%;
+        min-width: 0 !important;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+    }
+
+    /* Upload area */
+    input[type="file"] {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    #videoInput {
+        overflow: hidden;
+    }
+
+    /* Buttons */
+    button,
+    .primaryBtn,
+    .downloadBtn,
+    #splitBtn,
+    #downloadZipBtn {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Results */
+    #results,
+    #downloadContainer,
+    #clipsContainer,
+    #clipGrid {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    #clipGrid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    /* Download card */
+    .downloadAllCard {
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+    }
+}
+
+  /* =========================================================
+   FEATURES SECTION — RESPONSIVE
+   ========================================================= */
+
+.features {
+    width: 100%;
+    max-width: 1100px;
+    margin: 30px auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.featureCard {
+    width: 100%;
+    min-width: 0;
+    padding: 26px;
+    border-radius: 24px;
+    overflow: hidden;
+}
+
+.featureCard h2 {
+    margin-top: 0;
+    overflow-wrap: anywhere;
+}
+
+.featureCard ul {
+    margin: 0;
+    padding-left: 22px;
+}
+
+.featureCard li {
+    margin-bottom: 14px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+/* PHONE */
+@media (max-width: 700px) {
+
+    .features {
+        width: 100%;
+        max-width: 100%;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin: 20px auto;
+    }
+
+    .featureCard {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding: 22px;
+    }
+
+    .featureCard h2 {
+        font-size: 1.45rem;
+    }
+
+    .featureCard li {
+        font-size: 0.95rem;
+    }
+}
+
 </style>
 
 </head>
@@ -599,82 +787,64 @@ Preparing...
 
 </div>
 
+<!-- =========================================================
+     FEATURES SECTION
+     ========================================================= -->
 
-<div class="card">
+<div class="features">
 
-<h2>Your Clips</h2>
+    <!-- YOUR CLIPS -->
+    <div class="featureCard">
 
-<div id="downloadContainer" class="hidden">
+        <h2>🎬 Your Clips</h2>
 
-    <h2>🎉 Clips Ready</h2>
-
-    <p id="clipSummary"></p>
-
-    <div id="clipGrid"></div>
-
-    <div class="downloadAllCard">
-
-        <h3>Download Everything</h3>
-
-        <a
-            id="downloadZipBtn"
-            class="primaryBtn"
-            target="_blank"
-        >
-            Download ZIP
-        </a>
+        <ul>
+            <li>✔ Automatic clip generation</li>
+            <li>✔ Individual downloads</li>
+            <li>✔ Download everything as ZIP</li>
+            <li>✔ File size preview</li>
+            <li>✔ Video duration preview</li>
+            <li>✔ Mobile friendly</li>
+        </ul>
 
     </div>
 
-</div>
 
-</div>
+    <!-- CURRENT FEATURES -->
+    <div class="featureCard">
 
+        <h2>⚡ Current Features</h2>
 
-<div class="card">
+        <ul>
+            <li>✔ Upload videos</li>
+            <li>✔ Custom clip length</li>
+            <li>✔ Automatic clip generation</li>
+            <li>✔ Individual clip downloads</li>
+            <li>✔ Download all clips as ZIP</li>
+            <li>✔ File information</li>
+            <li>✔ Video duration detection</li>
+            <li>✔ Mobile-friendly interface</li>
+        </ul>
 
-<h2>Current Features</h2>
-
-<ul>
-
-<li>✔ Upload videos</li>
-
-<li>✔ Automatic clip generation</li>
-
-<li>✔ Individual downloads</li>
-
-<li>✔ Download all as ZIP</li>
-
-<li>✔ File size preview</li>
-
-<li>✔ Video duration preview</li>
-
-<li>✔ Mobile friendly</li>
-
-</ul>
-
-</div>
+    </div>
 
 
-<div class="card">
+    <!-- COMING SOON -->
+    <div class="featureCard">
 
-<h2>Coming Soon</h2>
+        <h2>🚀 Coming Soon</h2>
 
-<ul>
+        <ul>
+            <li>🤖 AI clip detection</li>
+            <li>🔗 Video link support</li>
+            <li>📝 Automatic captions</li>
+            <li>🖼️ Instant thumbnails</li>
+            <li>⚡ Batch processing</li>
+            <li>📱 Vertical Shorts export</li>
+            <li>🎛️ Advanced clip controls</li>
+        </ul>
 
-<li>🚀 AI clip detection</li>
-
-<li>🚀 Video link support</li>
-
-<li>🚀 Auto captions</li>
-
-<li>🚀 Batch processing</li>
-
-<li>🚀 Vertical Shorts export</li>
-
-<li>🚀 Custom clip lengths</li>
-
-</ul>
+    </div>
 
 </div>
 
