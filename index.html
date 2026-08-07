@@ -763,6 +763,17 @@ Create Clips
 
 </button>
 
+  <button
+    id="detectBtn"
+    type="button"
+    style="
+        margin-top:12px;
+        width:100%;
+    "
+>
+    ✨ AI Detect Best Clips
+  </button>
+
 <div id="loading">
 
 <div id="progressOuter">
@@ -1156,6 +1167,157 @@ duration;
   /* ------------------ Upload ------------------ */
 
 document.getElementById("splitBtn").addEventListener("click", splitVideo);
+
+  document
+    .getElementById("detectBtn")
+    .addEventListener("click", detectBestClips);
+
+  async function detectBestClips() {
+
+    const fileInput =
+        document.getElementById("videoInput");
+
+    const detectBtn =
+        document.getElementById("detectBtn");
+
+    const loading =
+        document.getElementById("loading");
+
+    const clipsContainer =
+        document.getElementById("clipsContainer");
+
+    const file = fileInput.files[0];
+
+    if (!file) {
+
+        alert("Please select a video file first.");
+
+        return;
+    }
+
+    detectBtn.disabled = true;
+
+    if (loading) {
+        loading.style.display = "block";
+    }
+
+    clipsContainer.innerHTML = "";
+
+    setStatus("Analysing your video...");
+
+    try {
+
+        const formData = new FormData();
+
+        formData.append("file", file);
+
+        const response = await fetch(
+            `${API}/detect-clips`,
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+        if (!response.ok) {
+
+            let message =
+                "Clip detection failed.";
+
+            try {
+
+                const errorData =
+                    await response.json();
+
+                if (typeof errorData.detail === "string") {
+                    message = errorData.detail;
+                }
+
+            } catch (_) {}
+
+            throw new Error(message);
+        }
+
+        const data =
+            await response.json();
+
+        currentJobId =
+            data.job_id || null;
+
+        if (
+            !data.candidates ||
+            data.candidates.length === 0
+        ) {
+
+            throw new Error(
+                "No strong clip candidates were found."
+            );
+        }
+
+        setStatus(
+            `Found ${data.candidates.length} potential clips.`
+        );
+
+        data.candidates.forEach(
+            (candidate, index) => {
+
+                const div =
+                    document.createElement("div");
+
+                div.className = "clip";
+
+                const start =
+                    Math.round(candidate.start);
+
+                const end =
+                    Math.round(candidate.end);
+
+                div.innerHTML = `
+                    <p>
+                        ✨ Suggested Clip ${index + 1}
+                    </p>
+
+                    <p>
+                        ${start}s → ${end}s
+                    </p>
+
+                    <p>
+                        Detection score:
+                        ${candidate.score}/100
+                    </p>
+                `;
+
+                clipsContainer.appendChild(div);
+
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Smart detection error:",
+            error
+        );
+
+        await reportFrontendError(error);
+
+        setStatus("Detection failed.");
+
+        alert(
+            error.message ||
+            "Unable to analyse video."
+        );
+
+    } finally {
+
+        detectBtn.disabled = false;
+
+        if (loading) {
+            loading.style.display = "none";
+        }
+
+    }
+  }
   
   async function splitVideo() {
 
