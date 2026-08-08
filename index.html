@@ -693,6 +693,168 @@ margin-top:15px;
     }
 }
 
+  /* =========================================================
+   MOBILE LAYOUT FIX — CLIPSHORTENER
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    * {
+        box-sizing: border-box;
+    }
+
+    html,
+    body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    body {
+        margin: 0;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 20px 16px;
+    }
+
+    .hero {
+        width: 100%;
+        max-width: 100%;
+        text-align: center;
+        margin-bottom: 24px;
+    }
+
+    .hero h1 {
+        width: 100%;
+        max-width: 100%;
+        font-size: clamp(2.2rem, 12vw, 3.5rem);
+        line-height: 1.05;
+        overflow-wrap: normal;
+        word-break: normal;
+        white-space: normal;
+    }
+
+    .hero p {
+        width: 100%;
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
+        overflow-wrap: normal;
+        word-break: normal;
+    }
+
+    .card {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    /* Prevent feature/footer sections from becoming
+       narrow desktop-style columns on phones */
+
+    .features,
+    .featureGrid,
+    .featuresGrid,
+    .footer,
+    .footerGrid,
+    .infoGrid,
+    .columns,
+    .threeColumns {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .features > *,
+    .featureGrid > *,
+    .featuresGrid > *,
+    .footer > *,
+    .footerGrid > *,
+    .infoGrid > *,
+    .columns > *,
+    .threeColumns > * {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    /* Results / clips */
+
+    #results,
+    #downloadContainer,
+    #clipGrid,
+    #clipsContainer {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    #clipGrid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* Upload area */
+
+    #videoInput {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Buttons */
+
+    button,
+    .primaryBtn,
+    #splitBtn,
+    #downloadZipBtn {
+        width: 100%;
+        max-width: 100%;
+        min-height: 52px;
+    }
+
+    /* Prevent long filenames and URLs from
+       forcing horizontal overflow */
+
+    #videoInfo,
+    #status,
+    #clipSummary,
+    .small {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+
+    /* Download card */
+
+    .downloadAllCard {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    /* General mobile text protection */
+
+    h1,
+    h2,
+    h3,
+    h4,
+    p,
+    li {
+        max-width: 100%;
+        overflow-wrap: normal;
+        word-break: normal;
+    }
+}
+
 </style>
 
 </head>
