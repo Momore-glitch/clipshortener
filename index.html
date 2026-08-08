@@ -1857,6 +1857,105 @@ clearResults();
 
 setStatus("");
 
+  // ==========================================
+// AI BEST CLIPS
+// ==========================================
+
+const aiDetectBtn = document.getElementById("aiDetectBtn");
+
+if (aiDetectBtn) {
+
+    aiDetectBtn.addEventListener("click", async () => {
+
+        // Make sure a video has been selected
+        if (!videoInput.files || videoInput.files.length === 0) {
+            status.textContent = "Please choose a video first.";
+            status.className = "error";
+            return;
+        }
+
+        const file = videoInput.files[0];
+
+        // Prevent accidental double-clicks
+        aiDetectBtn.disabled = true;
+        aiDetectBtn.textContent = "✨ Detecting best clips...";
+
+        status.textContent = "AI is analysing your video...";
+        status.className = "";
+
+        try {
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const response = await fetch(
+                `${API_BASE}/detect-clips`,
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.detail || "AI detection failed."
+                );
+            }
+
+            console.log("AI detection result:", data);
+
+            status.textContent = "✨ Best clips detected!";
+            status.className = "success";
+
+            // Display returned clips
+            if (data.clips && Array.isArray(data.clips)) {
+
+                clipsContainer.innerHTML = "";
+
+                data.clips.forEach((clip, index) => {
+
+                    const clipCard = document.createElement("div");
+
+                    clipCard.className = "clip-card";
+
+                    clipCard.innerHTML = `
+                        <h3>✨ AI Clip ${index + 1}</h3>
+
+                        <a
+                            href="${clip.download_url || clip.url}"
+                            target="_blank"
+                            class="primaryBtn"
+                        >
+                            Download Clip
+                        </a>
+                    `;
+
+                    clipsContainer.appendChild(clipCard);
+                });
+
+            }
+
+        } catch (error) {
+
+            console.error("AI detection error:", error);
+
+            status.textContent =
+                error.message || "AI detection failed.";
+
+            status.className = "error";
+
+        } finally {
+
+            aiDetectBtn.disabled = false;
+            aiDetectBtn.textContent = "✨ AI Detect Best Clips";
+        }
+
+    });
+
+}
+
 </script>
 
 </body>
