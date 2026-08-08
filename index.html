@@ -1004,6 +1004,88 @@ margin-top:15px;
     }
 }
 
+  /* ==========================================
+   VIDEO STAT BOXES
+   ========================================== */
+
+.videoStats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.statBox {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 18px;
+    padding: 18px;
+    text-align: center;
+}
+
+.statBox span {
+    display: block;
+    font-size: 14px;
+    opacity: 0.75;
+    margin-bottom: 8px;
+}
+
+.statBox strong {
+    display: block;
+    font-size: 22px;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+
+    .videoStats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .statBox {
+        padding: 16px 10px;
+    }
+
+    .statBox strong {
+        font-size: 20px;
+    }
+}
+
+/* ==========================================
+   UPLOAD PROGRESS
+   ========================================== */
+
+#loading {
+    display: none;
+    margin-top: 20px;
+}
+
+#progressOuter {
+    width: 100%;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+#progressBar {
+    width: 0%;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(
+        90deg,
+        #ff00c8,
+        #7c4dff
+    );
+    transition: width 0.2s ease;
+}
+
+#progressText {
+    text-align: center;
+    margin-top: 12px;
+}
+  
 </style>
 
 </head>
@@ -1396,102 +1478,100 @@ window.onerror = function (
 
 };
 
-/* ------------------ File Preview ------------------ */
+// ==========================================
+// VIDEO FILE INFORMATION
+// FILE SIZE + DURATION
+// ==========================================
 
-videoInput.addEventListener("change", () => {
+videoInput.addEventListener("change", function () {
 
-    currentJobId = null;
+    const file = videoInput.files[0];
 
-    selectedFile = videoInput.files[0];
-
-    resetProgress();
-
-    clearResults();
-
-    setStatus("");
-
-    if (!selectedFile) {
-
-        videoInfo.style.display = "none";
-
+    if (!file) {
+        videoInfo.innerHTML = "";
         return;
-
     }
 
-    const sizeMB =
-        (selectedFile.size / 1024 / 1024).toFixed(2);
+    // ------------------------------
+    // FILE SIZE
+    // ------------------------------
 
-    const url =
-        URL.createObjectURL(selectedFile);
+    function formatFileSize(bytes) {
 
-    const video =
-        document.createElement("video");
+        if (bytes < 1024 * 1024) {
+            return (bytes / 1024).toFixed(1) + " KB";
+        }
+
+        return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+    }
+
+    const fileSize = formatFileSize(file.size);
+
+    // ------------------------------
+    // CREATE VIDEO FOR DURATION
+    // ------------------------------
+
+    const video = document.createElement("video");
 
     video.preload = "metadata";
 
-    video.src = url;
+    video.onloadedmetadata = function () {
 
-    video.onloadedmetadata = () => {
+        const durationSeconds = video.duration;
 
-        const total =
-            Math.floor(video.duration);
+        const minutes = Math.floor(durationSeconds / 60);
 
-        const h =
-            Math.floor(total / 3600);
+        const seconds = Math.floor(durationSeconds % 60)
+            .toString()
+            .padStart(2, "0");
 
-        const m =
-            Math.floor((total % 3600) / 60);
-
-        const s =
-            total % 60;
-
-        const duration =
-            h > 0
-                ? `${h}h ${m}m ${s}s`
-                : `${m}m ${s}s`;
+        const durationText =
+            `${minutes}:${seconds}`;
 
         videoInfo.innerHTML = `
+            <div class="videoStats">
 
-<strong>Selected File</strong>
+                <div class="statBox">
+                    <span>File Size</span>
+                    <strong>${fileSize}</strong>
+                </div>
 
-<br><br>
+                <div class="statBox">
+                    <span>Duration</span>
+                    <strong>${durationText}</strong>
+                </div>
 
-📄 ${selectedFile.name}
+            </div>
+        `;
 
-<br><br>
-
-💾 ${sizeMB} MB
-
-<br><br>
-
-⏱ ${duration}
-
-`;
-
-        videoInfo.style.display = "block";
-
-      document.getElementById("fileSize").textContent =
-`${sizeMB} MB`;
-
-document.getElementById("fileDuration").textContent =
-duration;
-
-        URL.revokeObjectURL(url);
-
+        URL.revokeObjectURL(video.src);
     };
 
-    video.onerror = () => {
+    video.onerror = function () {
 
-        videoInfo.innerHTML =
-            "Unable to read video information.";
+        videoInfo.innerHTML = `
+            <div class="videoStats">
 
-        videoInfo.style.display = "block";
+                <div class="statBox">
+                    <span>File Size</span>
+                    <strong>${fileSize}</strong>
+                </div>
 
-        URL.revokeObjectURL(url);
+                <div class="statBox">
+                    <span>Duration</span>
+                    <strong>Unable to read</strong>
+                </div>
 
+            </div>
+        `;
+
+        URL.revokeObjectURL(video.src);
     };
+
+    video.src = URL.createObjectURL(file);
 
 });
+
 
   /* ------------------ Upload ------------------ */
 
