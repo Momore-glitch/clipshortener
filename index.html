@@ -1474,77 +1474,7 @@ function clearResults() {
         downloadZipBtn.removeAttribute("href");
     }
 
-function createThumbnail(videoUrl) {
-    return new Promise((resolve) => {
 
-        const video = document.createElement("video");
-
-        video.crossOrigin = "anonymous";
-        video.preload = "metadata";
-        video.muted = true;
-        video.playsInline = true;
-
-        video.src = videoUrl;
-
-        video.addEventListener("loadedmetadata", () => {
-
-            const targetTime = Math.min(
-                1,
-                Math.max(0, video.duration / 2)
-            );
-
-            video.currentTime = targetTime;
-
-        }, { once: true });
-
-        video.addEventListener("seeked", () => {
-
-            try {
-
-                const canvas = document.createElement("canvas");
-
-                const width = video.videoWidth || 640;
-                const height = video.videoHeight || 360;
-
-                canvas.width = width;
-                canvas.height = height;
-
-                const ctx = canvas.getContext("2d");
-
-                ctx.drawImage(
-                    video,
-                    0,
-                    0,
-                    width,
-                    height
-                );
-
-                resolve(canvas.toDataURL("image/jpeg", 0.82));
-
-            } catch (error) {
-
-                console.warn(
-                    "Thumbnail generation failed:",
-                    error
-                );
-
-                resolve(null);
-            }
-
-        }, { once: true });
-
-        video.addEventListener("error", () => {
-
-            console.warn(
-                "Could not load video thumbnail."
-            );
-
-            resolve(null);
-
-        }, { once: true });
-
-    });
-}
 
 
 async function renderResults(data){
@@ -1592,31 +1522,11 @@ async function renderResults(data){
 
         clipGrid.appendChild(card);
 
-        const thumbnail =
-            await createThumbnail(clipUrl);
+        
 
-        const thumbnailContainer =
-            card.querySelector(".clipThumbnail");
+        
 
-        if (thumbnail) {
-
-            thumbnailContainer.innerHTML = `
-                <img
-                    src="${thumbnail}"
-                    alt="Preview of Clip ${index + 1}"
-                    class="clipThumbnailImage"
-                >
-            `;
-
-        } else {
-
-            thumbnailContainer.innerHTML = `
-                <div class="thumbnailFallback">
-                    🎬 Clip ${index + 1}
-                </div>
-            `;
-        }
-    }
+      
 
     downloadZipBtn.href =
         `${API}/download-all/${encodeURIComponent(currentJobId)}`;
