@@ -1475,11 +1475,6 @@ function clearResults() {
 }
 }
 
-function createThumbnail(videoUrl) {
-
-
-
-
 async function renderResults(data){
 
     downloadContainer.classList.remove("hidden");
@@ -1525,13 +1520,7 @@ async function renderResults(data){
 
         clipGrid.appendChild(card);
 
-        
-
-        
-
-      
-
-    downloadZipBtn.href =
+       downloadZipBtn.href =
         `${API}/download-all/${encodeURIComponent(currentJobId)}`;
 
     setStatus("Clips ready.");
