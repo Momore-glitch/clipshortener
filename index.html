@@ -1437,68 +1437,154 @@ function clearResults() {
         downloadZipBtn.removeAttribute("href");
     }
 
+function createThumbnail(videoUrl) {
+    return new Promise((resolve) => {
+
+        const video = document.createElement("video");
+
+        video.crossOrigin = "anonymous";
+        video.preload = "metadata";
+        video.muted = true;
+        video.playsInline = true;
+
+        video.src = videoUrl;
+
+        video.addEventListener("loadedmetadata", () => {
+
+            const targetTime = Math.min(
+                1,
+                Math.max(0, video.duration / 2)
+            );
+
+            video.currentTime = targetTime;
+
+        }, { once: true });
+
+        video.addEventListener("seeked", () => {
+
+            try {
+
+                const canvas = document.createElement("canvas");
+
+                const width = video.videoWidth || 640;
+                const height = video.videoHeight || 360;
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext("2d");
+
+                ctx.drawImage(
+                    video,
+                    0,
+                    0,
+                    width,
+                    height
+                );
+
+                resolve(canvas.toDataURL("image/jpeg", 0.82));
+
+            } catch (error) {
+
+                console.warn(
+                    "Thumbnail generation failed:",
+                    error
+                );
+
+                resolve(null);
+            }
+
+        }, { once: true });
+
+        video.addEventListener("error", () => {
+
+            console.warn(
+                "Could not load video thumbnail."
+            );
+
+            resolve(null);
+
+        }, { once: true });
+
+    });
 }
 
 
-function renderResults(data) {
-
-    if (!data || !Array.isArray(data.clips)) {
-        throw new Error("No clips were returned by the server.");
-    }
-
-    if (!clipGrid || !downloadContainer) {
-        throw new Error("Clip results container is missing.");
-    }
-
-    clipGrid.innerHTML = "";
-
-    clipSummary.textContent =
-        `${data.clips.length} clip${data.clips.length === 1 ? "" : "s"} generated`;
-
-    data.clips.forEach((clip, index) => {
-
-        const card =
-            document.createElement("div");
-
-        card.className = "clipCard";
-
-        const title =
-            document.createElement("div");
-
-        title.className = "clipTitle";
-
-        title.textContent =
-            `Clip ${index + 1}`;
-
-        const link =
-            document.createElement("a");
-
-        link.className = "clipButton";
-
-        link.href =
-            `${API}/download/${encodeURIComponent(clip)}`;
-
-        link.target = "_blank";
-        link.rel = "noopener";
-
-        link.textContent = "Download";
-
-        card.appendChild(title);
-        card.appendChild(link);
-
-        clipGrid.appendChild(card);
-
-    });
-
-    if (currentJobId && downloadZipBtn) {
-
-        downloadZipBtn.href =
-            `${API}/download-all/${encodeURIComponent(currentJobId)}`;
-
-    }
+async function renderResults(data){
 
     downloadContainer.classList.remove("hidden");
 
+    setStatus("Preparing your clips...");
+
+    clipSummary.textContent =
+        `${data.clips.length} clips generated`;
+
+    clipGrid.innerHTML = "";
+
+    for (let index = 0; index < data.clips.length; index++) {
+
+        const clip = data.clips[index];
+
+        const clipUrl =
+            `${API}/download/${encodeURIComponent(clip)}`;
+
+        const card = document.createElement("div");
+
+        card.className = "clipCard";
+
+        card.innerHTML = `
+            <div class="clipTitle">
+                Clip ${index + 1}
+            </div>
+
+            <div class="clipThumbnail">
+                <div class="thumbnailLoading">
+                    Generating thumbnail...
+                </div>
+            </div>
+
+            <a
+                class="clipButton"
+                href="${clipUrl}"
+                target="_blank"
+                rel="noopener"
+            >
+                Download Clip
+            </a>
+        `;
+
+        clipGrid.appendChild(card);
+
+        const thumbnail =
+            await createThumbnail(clipUrl);
+
+        const thumbnailContainer =
+            card.querySelector(".clipThumbnail");
+
+        if (thumbnail) {
+
+            thumbnailContainer.innerHTML = `
+                <img
+                    src="${thumbnail}"
+                    alt="Preview of Clip ${index + 1}"
+                    class="clipThumbnailImage"
+                >
+            `;
+
+        } else {
+
+            thumbnailContainer.innerHTML = `
+                <div class="thumbnailFallback">
+                    🎬 Clip ${index + 1}
+                </div>
+            `;
+        }
+    }
+
+    downloadZipBtn.href =
+        `${API}/download-all/${encodeURIComponent(currentJobId)}`;
+
+    setStatus("Clips ready.");
 }
 
 
