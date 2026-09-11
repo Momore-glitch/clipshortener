@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08030f">
+<meta name="description" content="ClipShortener — upload videos, find the best moments, create short clips, add captions and export.">
+<title>ClipShortener — Video to Shorts</title>
+<style>
+:root{--bg:#07030d;--panel:#10091a;--panel2:#160d25;--line:#3c2360;--text:#fbf8ff;--muted:#bcaed0;--accent:#9a42ff;--accent2:#e05cff;--ok:#62e6bc;--danger:#ff7895;--shadow:rgba(154,66,255,.2)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 50% -8%,#5b178c 0,#25083e 29%,#10051a 60%,#07030d 100%)}
+.wrap{width:min(1080px,calc(100% - 28px));margin:auto;padding:22px 0 64px}.top{display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{font-weight:950;font-size:25px;letter-spacing:-.045em}.badge{font-size:12px;font-weight:850;color:#d9c9eb;background:#160b29;border:1px solid #4a2a76;border-radius:999px;padding:8px 11px}
+.hero{text-align:center;padding:58px 0 30px}.hero h1{font-size:clamp(43px,8vw,78px);line-height:.91;letter-spacing:-.07em;margin:0 auto 18px;max-width:900px}.hero h1 span{background:linear-gradient(135deg,#f09bff,#9842ff);-webkit-background-clip:text;background-clip:text;color:transparent}.hero p{max-width:720px;margin:auto;color:var(--muted);font-size:17px;line-height:1.65}
+.card{background:linear-gradient(180deg,rgba(20,11,34,.98),rgba(10,6,17,.98));border:1px solid var(--line);border-radius:28px;padding:20px;box-shadow:0 30px 100px var(--shadow)}
+.drop{border:1.5px dashed #62407f;border-radius:22px;padding:40px 20px;text-align:center;transition:.18s}.drop.drag{border-color:#d17cff;background:rgba(170,67,255,.08);transform:translateY(-1px)}.drop-icon{width:58px;height:58px;margin:0 auto 14px;border-radius:18px;display:grid;place-items:center;background:#1a0d2d;border:1px solid #50307b;font-size:25px}.drop h2{margin:0 0 8px;font-size:24px}.drop p{margin:0 auto 20px;color:var(--muted);max-width:590px}.hint{font-size:12px;color:#9383a7;margin-top:12px}.url-import{margin-top:16px;padding-top:16px;border-top:1px solid #2d1b45}.url-row{display:flex;gap:10px}.url-row .input{flex:1}.source-note{font-size:11px;color:#9383a7;margin-top:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:13px 18px;font-weight:900;font-size:14px;cursor:pointer;text-decoration:none;color:#fff;background:linear-gradient(135deg,#8128ef,#b83bf2);box-shadow:0 10px 26px rgba(157,47,236,.23);transition:.15s}.btn:hover{transform:translateY(-1px)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.btn.secondary{background:#1a0e31;border:1px solid #4d2b7b;box-shadow:none}.btn.ghost{background:transparent;border:1px solid #4d2b7b;box-shadow:none}.btn.danger{background:#2b0d18;border:1px solid #713044;color:#ffb5c3;box-shadow:none}
+.file-input{display:none}.file-info{display:none;margin-top:14px;padding:14px;border:1px solid #402664;background:#120a21;border-radius:16px}.file-info.show{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}.file-name{font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.file-meta{color:var(--muted);font-size:12px;margin-top:4px}.remove{white-space:nowrap}
+.section{margin-top:18px}.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.section-title h3{margin:0;font-size:15px}.section-title span{font-size:11px;color:#9d8cad}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.field label{display:block;font-size:12px;font-weight:900;color:#cfc1df;margin:0 0 7px}.input{width:100%;border:1px solid #462b72;background:#0b0613;color:#fff;border-radius:13px;padding:13px;outline:none}.input:focus{border-color:#bd6bff;box-shadow:0 0 0 3px rgba(189,107,255,.12)}
+.check{display:flex;align-items:flex-start;gap:9px;color:var(--muted);font-size:13px;line-height:1.45;margin-top:13px}.check input{margin-top:2px;accent-color:#a53cff}.details{border:1px solid #402663;background:#120a21;border-radius:16px;overflow:hidden}.details summary{cursor:pointer;list-style:none;padding:14px;font-weight:900;font-size:13px}.details summary::-webkit-details-marker{display:none}.details summary:after{content:"＋";float:right;color:#a995b8}.details[open] summary:after{content:"−"}.caption-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 14px 14px}
+.preview{grid-column:1/-1;border-top:1px solid #322047;padding-top:14px}.preview-box{position:relative;aspect-ratio:16/9;max-width:500px;margin:auto;border-radius:14px;overflow:hidden;background:radial-gradient(circle at 50% 30%,#5b1b93,#13081f 68%);display:flex;align-items:center;justify-content:center}.preview-box:before{content:"Caption preview";position:absolute;top:12px;left:14px;color:#ab96c1;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.preview-text{position:absolute;left:7%;right:7%;bottom:9%;text-align:center;font-weight:950;font-size:30px;line-height:1.03;text-shadow:0 3px 8px #000}.preview-text.boxed{background:rgba(0,0,0,.68);padding:.25em .45em;border-radius:.22em}.preview-text.minimal{font-weight:800}.preview-text.top{top:11%;bottom:auto}.preview-text.middle{top:50%;bottom:auto;transform:translateY(-50%)}
+.smart{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border:1px solid #402663;background:#120a21;border-radius:16px}.smart p{margin:3px 0 0;color:var(--muted);font-size:12px}.candidates{display:grid;gap:8px;margin-top:10px}.candidate{display:flex;justify-content:space-between;gap:12px;padding:11px 12px;border:1px solid #382354;background:#0e0718;border-radius:12px;font-size:12px}.candidate small{color:#a997b8}
+.create-row{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:18px}.progress-wrap{display:none;margin-top:18px}.progress-wrap.show{display:block}.progress-head{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:#cbbbd9;margin-bottom:7px}.progress{height:10px;border-radius:99px;background:#0a0610;border:1px solid #392252;overflow:hidden}.bar{height:100%;width:0;background:linear-gradient(90deg,#8b2cf5,#e04cff);transition:width .25s ease}
+.notice{display:none;margin-top:14px;padding:13px 14px;border-radius:14px;font-size:13px;line-height:1.5}.notice.show{display:block}.notice.error{color:#ffbeca;background:#260d18;border:1px solid #713044}.notice.success{color:#a9f5dc;background:#0d241e;border:1px solid #2d6d5a}
+.results{display:none;margin-top:22px}.results-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:12px}.results-head h2{margin:0;font-size:22px}.results-head p{margin:4px 0 0;color:var(--muted);font-size:12px}.clip-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.clip{overflow:hidden;border:1px solid #3e2561;background:#10091b;border-radius:18px}.thumb{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#09050e}.clip-body{padding:13px}.clip-title{font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.clip-meta{font-size:12px;color:var(--muted);margin:5px 0 12px}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions .btn{padding:10px 13px;font-size:12px}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}.feature{padding:17px;border:1px solid #352052;background:rgba(15,8,25,.75);border-radius:18px}.feature h3{margin:0 0 7px;font-size:14px}.feature p{margin:0;color:var(--muted);font-size:12px;line-height:1.55}.footer{text-align:center;color:#847492;font-size:11px;margin-top:24px}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.features{grid-template-columns:1fr}.clip-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.wrap{width:min(100% - 18px,1080px);padding-top:14px}.hero{padding-top:42px}.hero h1{font-size:48px}.card{padding:13px;border-radius:22px}.grid,.caption-grid{grid-template-columns:1fr}.drop{padding:32px 14px}.smart{align-items:flex-start;flex-direction:column}.results-head{align-items:stretch;flex-direction:column}.file-info.show{grid-template-columns:1fr}.remove{width:100%}.create-row .btn{width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div class="brand">ClipShortener</div><div class="badge">UPLOAD • CLIP • EXPORT</div></header>
+<section class="hero"><h1>Turn long videos into <span>shorts.</span></h1><p>Upload your video, choose how you want the clips made, and let ClipShortener handle the heavy lifting with FFmpeg.</p></section>
+
+<main class="card">
+  <section class="drop" id="drop">
+    <div class="drop-icon">↑</div>
+    <h2>Drop your video here</h2>
+    <p>Upload one video for a focused workflow or several videos for batch processing.</p>
+    <input class="file-input" id="video" type="file" accept="video/*" multiple>
+    <button class="btn" id="choose" type="button">Choose video files</button>
+    <div class="hint">Supported: MP4, MOV, AVI, MKV, WebM, M4V, MPEG, MPG, 3GP and TS</div>
+  </section>
+
+  <section class="url-import">
+    <div class="section-title"><h3>Or use a direct video URL</h3><span>Public MP4/MOV/WebM links</span></div>
+    <div class="url-row"><input class="input" id="videoUrl" type="url" placeholder="Paste a direct public video-file URL"><button class="btn secondary" id="useUrl" type="button">Use URL</button></div>
+    <div class="source-note">Direct public video-file URLs are accepted here. Platform page links are not enabled in this build.</div>
+  </section>
+
+  <div class="file-info" id="fileInfo"><div><div class="file-name" id="name">No files selected</div><div class="file-meta" id="meta">Select at least one video.</div></div><button class="btn danger remove" id="clear" type="button">Clear</button></div>
+
+  <section class="section">
+    <div class="section-title"><h3>Clip settings</h3><span>Applied to every selected video</span></div>
+    <div class="grid">
+      <div class="field"><label for="clipLength">Clip length</label><select class="input" id="clipLength"><option value="15">15 seconds</option><option value="30" selected>30 seconds</option><option value="45">45 seconds</option><option value="60">60 seconds</option><option value="90">90 seconds</option><option value="120">120 seconds</option></select></div>
+      <div class="field"><label for="exportFormat">Output</label><select class="input" id="exportFormat"><option value="original" selected>Original quality</option><option value="720p">720p</option><option value="1080p">1080p</option><option value="vertical">Vertical 9:16</option></select></div>
+      <div class="field"><label for="start">Start time (optional)</label><input class="input" id="start" type="number" min="0" step="0.1" value="0"></div>
+      <div class="field"><label for="end">End time (optional)</label><input class="input" id="end" type="number" min="0" step="0.1" value="0"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <details class="details">
+      <summary>Caption settings</summary>
+      <div class="caption-grid">
+        <div class="field"><label for="captionLanguage">Language</label><select class="input" id="captionLanguage"><option value="auto">Auto</option><option value="en">English</option><option value="fr">French</option><option value="es">Spanish</option><option value="de">German</option><option value="it">Italian</option><option value="pt">Portuguese</option><option value="nl">Dutch</option><option value="hi">Hindi</option><option value="ar">Arabic</option><option value="yo">Yoruba</option></select></div>
+        <div class="field"><label for="captionStyle">Style</label><select class="input" id="captionStyle"><option value="classic">Classic</option><option value="bold">Bold</option><option value="boxed">Boxed</option><option value="minimal">Minimal</option></select></div>
+        <div class="field"><label for="captionFont">Font</label><select class="input" id="captionFont"><option>DejaVu Sans</option><option>Liberation Sans</option><option>DejaVu Sans Mono</option></select></div>
+        <div class="field"><label for="captionAnimation">Animation</label><select class="input" id="captionAnimation"><option value="none">None</option><option value="fade">Fade</option><option value="pop">Pop</option></select></div>
+        <div class="field"><label for="captionPosition">Position</label><select class="input" id="captionPosition"><option value="bottom">Bottom</option><option value="middle">Middle</option><option value="top">Top</option></select></div>
+        <div class="field"><label for="captionSize">Size</label><select class="input" id="captionSize"><option value="medium">Medium</option><option value="large" selected>Large</option><option value="xlarge">Extra large</option></select></div>
+        <div class="preview"><div class="preview-box"><div class="preview-text" id="previewText">Your captions appear here</div></div></div>
+      </div>
+      <label class="check"><input id="captions" type="checkbox"> <span>Generate and burn captions into the exported clips.</span></label>
+    </details>
+  </section>
+
+  <section class="section">
+    <div class="smart"><div><strong>Smart moment detection</strong><p>Scan one uploaded video for strong visual changes and use the suggested windows as a guide.</p></div><button class="btn secondary" id="detect" type="button" disabled>Find best moments</button></div>
+    <div class="candidates" id="candidates"></div>
+  </section>
+
+  <div class="create-row"><button class="btn" id="create" type="button" disabled>Create clips</button></div>
+  <div class="progress-wrap" id="progressWrap"><div class="progress-head"><span id="status">Preparing...</span><strong id="percent">0%</strong></div><div class="progress"><div class="bar" id="bar"></div></div></div>
+  <div class="notice error" id="error"></div><div class="notice success" id="success"></div>
+
+  <section class="results" id="results"><div class="results-head"><div><h2>Your clips are ready</h2><p id="summary"></p></div><a class="btn" id="zip" href="#" download>Download all</a></div><div class="clip-grid" id="clipGrid"></div></section>
+</main>
+
+<section class="features"><div class="feature"><h3>⚡ Fast processing</h3><p>Resumable uploads, queued jobs and FFmpeg-powered clipping.</p></div><div class="feature"><h3>📦 Batch processing</h3><p>Upload several videos together, track them as one batch, and download the finished clips together.</p></div><div class="feature"><h3>✍️ Captions</h3><p>Choose language, typography, animation and placement before export.</p></div></section>
+<div class="footer">ClipShortener processes uploaded video files and direct public video-file URLs.</div>
+</div>
+<script>
+const API='https://clipshortener-backend-1.onrender.com';
+const FETCH_TIMEOUT=90000;
+const UPLOAD_CHUNK_SIZE=64*1024*1024;
+const BATCH_UPLOAD_CONCURRENCY=2;
+const $=id=>document.getElementById(id);
+let files=[];let poller=null;let busy=false;let activeUrl='';
+function fmtBytes(n){if(!n)return'0 B';const u=['B','KB','MB','GB','TB'];const i=Math.min(Math.floor(Math.log(n)/Math.log(1024)),u.length-1);return`${(n/Math.pow(1024,i)).toFixed(i?1:0)} ${u[i]}`}
+function fmtTime(s){s=Math.max(0,Number(s)||0);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=Math.floor(s%60);return h?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`}
+function showError(msg){const e=$('error');e.textContent=msg||'';e.classList.toggle('show',!!msg)}
+function showSuccess(msg){const e=$('success');e.textContent=msg||'';e.classList.toggle('show',!!msg)}
+function hasSource(){return files.length>0||!!activeUrl}
+function setBusy(v,msg='Working...'){busy=v;$('create').disabled=v||!hasSource();$('detect').disabled=v||files.length!==1;$('choose').disabled=v;if(v){$('progressWrap').classList.add('show');$('status').textContent=msg}else $('progressWrap').classList.remove('show')}
+function setFiles(list){files=Array.from(list||[]).filter(f=>f&&f.size>0);const info=$('fileInfo');if(!files.length){info.classList.remove('show');$('name').textContent='No files selected';$('meta').textContent='Select at least one video.'}else{info.classList.add('show');$('name').textContent=files.length===1?files[0].name:`${files.length} videos selected`;$('meta').textContent=files.length===1?fmtBytes(files[0].size):`${fmtBytes(files.reduce((a,f)=>a+f.size,0))} total • ${files.length} files`}$('create').disabled=!hasSource()||busy;$('detect').disabled=files.length!==1||busy;}
+async function fetchWithTimeout(url,options={},timeout=FETCH_TIMEOUT){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),timeout);try{return await fetch(url,{...options,signal:controller.signal,cache:options.cache||'no-store'})}catch(e){if(e.name==='AbortError')throw Error('The server took too long to respond. Please try again.');throw e}finally{clearTimeout(timer)}}
+async function wakeBackend(){for(let i=0;i<3;i++){try{const r=await fetchWithTimeout(API+'/health',{cache:'no-store'},90000);if(r.ok)return await r.json()}catch(e){if(i===2)throw Error('The processing server is unavailable right now. Please try again in a moment.')}await new Promise(r=>setTimeout(r,1200))}throw Error('The processing server is unavailable right now.')}
+function baseHeaders(f){const total=Math.max(1,Math.ceil(f.size/UPLOAD_CHUNK_SIZE));return{'X-Upload-Name':f.name,'X-Upload-Total':String(f.size),'X-Upload-Chunks':String(total),'X-Upload-Chunk-Size':String(UPLOAD_CHUNK_SIZE),'X-Upload-Clip-Length':$('clipLength').value,'X-Upload-Export':$('exportFormat').value,'X-Upload-Start':$('start').value||'0','X-Upload-End':$('end').value||'0','X-Upload-Captions':$('captions').checked?'1':'0','X-Upload-Caption-Language':$('captionLanguage').value,'X-Upload-Caption-Style':$('captionStyle').value,'X-Upload-Caption-Font':$('captionFont').value,'X-Upload-Caption-Size':$('captionSize').value,'X-Upload-Caption-Animation':$('captionAnimation').value,'X-Upload-Caption-Position':$('captionPosition').value}}
+async function submitOne(file){
+  const chunkSize=UPLOAD_CHUNK_SIZE;
+  const totalChunks=Math.ceil(file.size/chunkSize);
+  const resumeKey=`clipshortener-resume-${file.name}-${file.size}-${file.lastModified}`;
+  let jobId='',serverResult=null,received=new Set(),sessionId='';
+
+  try{
+    const saved=JSON.parse(sessionStorage.getItem(resumeKey)||'null');
+    if(saved?.sessionId){
+      sessionId=saved.sessionId;
+      const r=await fetchWithTimeout(API+'/api/upload-session/'+encodeURIComponent(sessionId),{},30000);
+      if(r.ok){
+        const d=await r.json();
+        if(Number(d.total_size)===file.size&&Number(d.total_chunks)===totalChunks&&d.filename===file.name){
+          jobId=d.job_id||sessionId;
+          (d.received||[]).forEach(i=>received.add(Number(i)));
+        }else{
+          sessionStorage.removeItem(resumeKey);sessionId='';jobId='';received.clear();
+        }
+      }else{
+        sessionStorage.removeItem(resumeKey);sessionId='';jobId='';received.clear();
+      }
+    }
+  }catch{}
+
+  if(!sessionId){
+    sessionId=(crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):(Math.random().toString(16).slice(2)+Date.now().toString(16))).slice(0,32);
+  }
+  sessionStorage.setItem(resumeKey,JSON.stringify({sessionId,name:file.name,size:file.size,lastModified:file.lastModified}));
+
+  let uploadedBytes=Array.from(received).reduce((sum,i)=>sum+Math.min(chunkSize,Math.max(0,file.size-i*chunkSize)),0);
+  const startedAt=performance.now();
+
+  for(let index=0;index<totalChunks;index++){
+    if(received.has(index))continue;
+    let attempt=0,lastErr=null;
+
+    while(attempt<8){
+      attempt++;
+      try{
+        const start=index*chunkSize,end=Math.min(file.size,start+chunkSize);
+        const h=baseHeaders(file);
+        h['X-Upload-Index']=String(index);
+        h['X-Upload-Name']=file.name;
+        h['X-Upload-Session']=sessionId;
+        if(jobId)h['X-Upload-Job']=jobId;
+
+        $('status').textContent=`Uploading ${file.name} • ${Math.round(uploadedBytes/file.size*100)}%${attempt>1?` • retry ${attempt}/8`:''}`;
+
+        const r=await fetchWithTimeout(API+'/api/upload-chunk',{method:'POST',headers:h,body:file.slice(start,end)},120000);
+        const text=await r.text();
+        let d={};try{d=JSON.parse(text)}catch{}
+        if(!r.ok)throw Error(d.detail||text||`Upload failed (${r.status})`);
+
+        jobId=d.job_id||jobId||sessionId;
+        serverResult=d;
+        received.add(index);
+        uploadedBytes=Math.max(uploadedBytes,Math.min(file.size,end));
+        sessionStorage.setItem(resumeKey,JSON.stringify({sessionId:jobId,name:file.name,size:file.size,lastModified:file.lastModified}));
+
+        const elapsed=(performance.now()-startedAt)/1000;
+        const speed=elapsed>0?uploadedBytes/elapsed:0;
+        const eta=speed>0?Math.ceil(Math.max(0,file.size-uploadedBytes)/speed):0;
+        $('status').textContent=`Uploading ${file.name} • ${Math.round(uploadedBytes/file.size*100)}% • ${fmtBytes(speed)}/s${eta?` • ~${eta}s left`:''}`;
+
+        lastErr=null;break;
+      }catch(e){
+        lastErr=e;
+        if(attempt<8){
+          $('status').textContent=`Upload interrupted • retrying ${attempt}/8...`;
+          await new Promise(r=>setTimeout(r,Math.min(8000,700*Math.pow(2,attempt-1))));
+        }
+      }
+    }
+    if(lastErr)throw lastErr;
+  }
+
+  sessionStorage.removeItem(resumeKey);
+  return serverResult||{job_id:jobId,status_url:`/api/jobs/${jobId}`};
+}
+
+async function submitUrl(){
+  const fd=new FormData();
+  fd.append('url',activeUrl);
+  fd.append('clip_length',$('clipLength').value);fd.append('export_format',$('exportFormat').value);
+  fd.append('start',$('start').value||'0');fd.append('end',$('end').value||'0');
+  fd.append('captions',$('captions').checked?'true':'false');
+  fd.append('caption_language',$('captionLanguage').value);fd.append('caption_style',$('captionStyle').value);
+  fd.append('caption_font',$('captionFont').value);fd.append('caption_size',$('captionSize').value);
+  fd.append('caption_animation',$('captionAnimation').value);fd.append('caption_position',$('captionPosition').value);
+  $('status').textContent='Acquiring video from URL...';
+  const r=await fetchWithTimeout(API+'/api/import-url',{method:'POST',body:fd},180000);
+  const text=await r.text();let d={};try{d=JSON.parse(text)}catch{}
+  if(!r.ok)throw Error(d.detail||text||`URL import failed (${r.status})`);
+  return d;
+}
+
+async function submitAll(){
+  const results=new Array(files.length);
+  let nextIndex=0;
+  let completedUploads=0;
+
+  async function worker(){
+    while(true){
+      const i=nextIndex++;
+      if(i>=files.length)return;
+      const file=files[i];
+      $('status').textContent=`Uploading batch • ${completedUploads}/${files.length} complete • ${file.name}`;
+      const result=await submitOne(file);
+      if(!result?.job_id)throw Error(`Video ${i+1} uploaded but no processing job was returned.`);
+      results[i]=result;
+      completedUploads++;
+      $('status').textContent=`Batch uploads • ${completedUploads}/${files.length} complete`;
+    }
+  }
+
+  const workerCount=Math.min(BATCH_UPLOAD_CONCURRENCY,files.length);
+  await Promise.all(Array.from({length:workerCount},()=>worker()));
+  return {success:true,jobs:results};
+}
+
+function statusUrlOf(j){const raw=j&&j.status_url||'';return raw.startsWith('http')?raw:(raw.startsWith('/')?raw:raw?'/api/jobs/'+raw:'')}
+function jobIdOf(j){return j&&j.job_id||''}
+
+async function fetchJob(statusUrl){
+  const endpoint=statusUrl.startsWith('http')?statusUrl:API+(statusUrl.startsWith('/')?statusUrl:'/api/jobs/'+statusUrl);
+  const r=await fetchWithTimeout(endpoint,{cache:'no-store'},90000);
+  const text=await r.text();let d={};try{d=JSON.parse(text)}catch{}
+  if(!r.ok)throw Error(d.detail||text||`Status request failed (${r.status})`);
+  return d;
+}
+
+function render(r){
+  if(!r)return;
+  $('results').style.display='block';
+  const existing=Number($('summary').dataset.totalClips||0);
+  const total=existing+(Number(r.clip_count)||0);
+  $('summary').dataset.totalClips=String(total);
+  $('summary').textContent=`${total} clip${total===1?'':'s'} generated${files.length>1?` • ${files.length} videos`:''}`;
+  const startCount=$('clipGrid').children.length;
+  $('clipGrid').insertAdjacentHTML('beforeend',(r.clips||[]).map(c=>`<article class="clip"><img class="thumb" src="${API+c.thumbnail}?v=28.2" loading="lazy" decoding="async" alt="Clip preview"><div class="clip-body"><div class="clip-title">${c.name}</div><div class="clip-meta">${fmtTime(c.duration)} • ${fmtBytes(c.size)}${r.source_name?` • ${r.source_name}`:''}</div><div class="actions"><a class="btn secondary" href="${API+c.url}" target="_blank" download>Download</a>${c.has_vtt?`<a class="btn ghost" href="${API+c.vtt}" target="_blank" download>Captions</a>`:''}</div></div></article>`).join(''));
+  const added=[...$('clipGrid').children].slice(startCount);
+  added.forEach(card=>{
+    const img=card.querySelector('.thumb');
+    const fallback=r.thumbnail?API+r.thumbnail+'?v=28.2':'';
+    img.addEventListener('error',()=>{
+      if(img.dataset.fallback==='1')return;
+      img.dataset.fallback='1';
+      if(fallback) img.src=fallback;
+    });
+  });
+}
+
+async function pollMany(jobResults){
+  clearInterval(poller);poller=null;
+  const states=jobResults.map((j,index)=>({index,id:jobIdOf(j),url:statusUrlOf(j),done:false,errors:0,result:null,error:null,progress:0}));
+  let finished=0;
+  $('results').style.display='block';
+  $('clipGrid').innerHTML='';
+  $('summary').dataset.totalClips='0';
+  $('summary').textContent=`Processing 0 of ${states.length} videos...`;
+  $('zip').style.display='none';
+
+  const updateUi=()=>{
+    const pct=Math.round(states.reduce((sum,s)=>sum+s.progress,0)/Math.max(1,states.length));
+    $('bar').style.width=pct+'%';$('percent').textContent=pct+'%';
+    const failed=states.filter(s=>s.error);
+    const completed=states.filter(s=>s.result).length;
+    const active=states.find(s=>!s.done&&s.message);
+    $('status').textContent=finished<states.length
+      ? (active ? `${active.message} • ${finished} of ${states.length} complete` : `Processing ${finished} of ${states.length} videos...`)
+      : failed.length
+        ? `${completed} of ${states.length} videos completed.`
+        : 'All videos processed.';
+    $('summary').textContent=`${Number($('summary').dataset.totalClips||0)} clips • ${completed} of ${states.length} videos completed`;
+  };
+
+  const ids=states.map(s=>s.id).filter(Boolean);
+  const batchEndpoint=ids.length
+    ? `${API}/api/batch-status?jobs=${encodeURIComponent(ids.join(','))}`
+    : '';
+
+  while(finished<states.length){
+    try{
+      let payload;
+      const r=await fetchWithTimeout(batchEndpoint,{cache:'no-store'},30000);
+      const text=await r.text();let d={};try{d=JSON.parse(text)}catch{}
+      if(!r.ok)throw Error(d.detail||text||`Batch status request failed (${r.status})`);
+      if(!Array.isArray(d.jobs))throw Error('Batch status response was invalid.');
+      payload=d.jobs;
+
+      const byId=new Map(payload.map(j=>[j.job_id,j]));
+      for(const s of states){
+        if(s.done)continue;
+        const d=byId.get(s.id);
+        if(!d)continue;
+        s.errors=0;
+        s.progress=Math.max(0,Math.min(100,Number(d.progress)||0));
+        s.message=d.message||'';
+        if(d.status==='complete'){
+          s.done=true;s.progress=100;s.result=d.result;finished++;
+          render(d.result);
+        }else if(d.status==='error'){
+          s.done=true;s.error=d.message||'Processing failed.';finished++;
+        }
+      }
+    }catch(e){
+      for(const s of states.filter(x=>!x.done))s.errors++;
+      const maxErrors=Math.max(60,Math.ceil(6000/1000));
+      if(states.some(s=>s.errors>=maxErrors)){
+        states.filter(s=>!s.done&&s.errors>=maxErrors).forEach(s=>{s.done=true;s.error='Processing status was unavailable for too long.';finished++});
+      }
+    }
+    updateUi();
+    if(finished<states.length)await new Promise(r=>setTimeout(r,1000));
+  }
+
+  setBusy(false);
+  const completed=states.filter(s=>s.result).map(s=>s.result);
+  const failed=states.filter(s=>s.error);
+  if(!failed.length){
+    $('bar').style.width='100%';$('percent').textContent='100%';
+    showSuccess(`Done. All ${states.length} videos were processed.`);
+    if(ids.length>1){
+      $('zip').style.display='inline-flex';
+      $('zip').textContent='Download all';
+      $('zip').href=API+'/api/batch-zip?jobs='+encodeURIComponent(ids.join(','));
+    }else if(completed[0]?.zip){
+      $('zip').style.display='inline-flex';$('zip').textContent='Download all';$('zip').href=API+completed[0].zip;
+    }
+  }else{
+    showError(`${completed.length} of ${states.length} videos completed. ${failed.map(s=>`Video ${s.index+1}: ${s.error}`).join(' • ')}`);
+  }
+  $('results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+async function create(){
+  if(!hasSource()||busy)return;
+  showError('');showSuccess('');$('results').style.display='none';$('clipGrid').innerHTML='';$('summary').dataset.totalClips='0';$('zip').style.display='none';
+  setBusy(true,'Connecting to processing server...');
+  try{
+    await wakeBackend();
+    if(activeUrl){
+      const j=await submitUrl();
+      await pollMany([j]);
+      return;
+    }
+    const j=await submitAll();
+    const jobs=j.jobs||[];
+    if(!jobs.length)throw Error('Upload succeeded but no processing jobs were returned. Please retry.');
+    await pollMany(jobs);
+  }catch(e){setBusy(false);showError(e.message)}
+}
+async function detect(){if(files.length!==1||busy)return;showError('');const fd=new FormData();fd.append('file',files[0],files[0].name);fd.append('clip_length',$('clipLength').value);const b=$('detect');try{b.disabled=true;b.textContent='Scanning...';const r=await fetchWithTimeout(API+'/api/detect',{method:'POST',body:fd},120000);const text=await r.text();let d={};try{d=JSON.parse(text)}catch{}if(!r.ok)throw Error(d.detail||text||'Detection failed');$('candidates').innerHTML=(d.candidates||[]).map(c=>`<div class="candidate"><strong>${fmtTime(c.start)} → ${fmtTime(c.end)}</strong><small>strong visual change</small></div>`).join('')||'<div class="candidate"><span>No strong moments were detected.</span></div>'}catch(e){showError(e.message)}finally{b.disabled=files.length!==1||busy;b.textContent='Find best moments'}}
+function updatePreview(){const t=$('previewText');t.className='preview-text '+$('captionStyle').value+' '+$('captionPosition').value;if($('captionAnimation').value==='pop')t.classList.add('pop');t.style.fontFamily=$('captionFont').value;const size={medium:'25px',large:'30px',xlarge:'37px'}[$('captionSize').value]||'30px';t.style.fontSize=size}
+$('choose').onclick=()=>$('video').click();
+$('video').onchange=e=>{activeUrl='';$('videoUrl').value='';setFiles(e.target.files);showError('');showSuccess('')};
+$('useUrl').onclick=()=>{const value=$('videoUrl').value.trim();if(!value){showError('Paste a direct public video-file URL first.');return}activeUrl=value;files=[];$('video').value='';$('fileInfo').classList.remove('show');$('name').textContent='No files selected';$('meta').textContent='Using video URL';$('create').disabled=busy;showError('');showSuccess('URL source selected. Press Create clips.');$('detect').disabled=true};
+$('videoUrl').addEventListener('keydown',e=>{if(e.key==='Enter')$('useUrl').click()});
+$('drop').ondragover=e=>{e.preventDefault();$('drop').classList.add('drag')};$('drop').ondragleave=()=>$('drop').classList.remove('drag');$('drop').ondrop=e=>{e.preventDefault();$('drop').classList.remove('drag');setFiles(e.dataTransfer.files);showError('');showSuccess('')};
+$('clear').onclick=()=>{files=[];activeUrl='';$('video').value='';$('videoUrl').value='';$('candidates').innerHTML='';$('results').style.display='none';$('clipGrid').innerHTML='';showError('');showSuccess('');setBusy(false);setFiles([])};$('create').onclick=create;$('detect').onclick=detect;
+['captionStyle','captionPosition','captionAnimation','captionFont','captionSize'].forEach(id=>$(id).addEventListener('change',updatePreview));updatePreview();
+window.addEventListener('error',e=>{fetch(API+'/frontend-error',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:e.message,url:location.href,line:e.lineno,column:e.colno})}).catch(()=>{})});
+</script>
+</body>
+</html>
