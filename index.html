@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -177,8 +178,41 @@ async function submitOne(file){
     if(lastErr)throw lastErr;
   }
 
+  // Ask the Worker to verify every B2 part explicitly before polling the job.
+  // Keep the resumable session record until the server confirms completion.
+  const completionResponse = await fetchWithTimeout(
+    API + '/api/upload-complete/' + encodeURIComponent(sessionId),
+    { method: 'POST', headers: { 'Accept': 'application/json' } },
+    30000
+  );
+  const completionText = await completionResponse.text();
+  let completion = {};
+  try { completion = JSON.parse(completionText); } catch {}
+
+  if (!completionResponse.ok) {
+    if (Array.isArray(completion.missing) && completion.missing.length) {
+      const preview = completion.missing.slice(0, 12).map(i => Number(i) + 1).join(', ');
+      const more = completion.missing.length > 12 ? ', …' : '';
+      throw Error(
+        'The server has not received every video chunk yet. Missing chunk(s): ' +
+        preview + more + '. Your upload progress has been saved; press Create clips again to resume.'
+      );
+    }
+    throw Error(completion.detail || completion.message || completionText || `Upload completion failed (${completionResponse.status})`);
+  }
+
+  if (completion.complete !== true) {
+    throw Error(completion.message || 'The server has not confirmed upload completion. Your progress has been saved; press Create clips again to resume.');
+  }
+
+  jobId = completion.job_id || jobId || sessionId;
   sessionStorage.removeItem(resumeKey);
-  return serverResult||{job_id:jobId,status_url:`/api/jobs/${jobId}`};
+  return {
+    ...(serverResult || {}),
+    ...completion,
+    job_id: jobId,
+    status_url: `/api/jobs/${encodeURIComponent(jobId)}`,
+  };
 }
 
 async function submitAll(){
