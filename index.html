@@ -278,77 +278,245 @@ function render(r){
 }
 
 async function pollMany(jobResults){
-  clearInterval(poller);poller=null;
-  const states=jobResults.map((j,index)=>({index,id:jobIdOf(j),url:statusUrlOf(j),done:false,errors:0,result:null,error:null,progress:0}));
-  let finished=0;
-  $('results').style.display='block';
-  $('clipGrid').innerHTML='';
-  $('summary').dataset.totalClips='0';
-  $('summary').textContent=`Processing 0 of ${states.length} videos...`;
+  clearInterval(poller);
+  poller = null;
 
-  const updateUi=()=>{
-    const pct=Math.round(states.reduce((sum,s)=>sum+s.progress,0)/Math.max(1,states.length));
-    $('bar').style.width=pct+'%';$('percent').textContent=pct+'%';
-    const failed=states.filter(s=>s.error);
-    const completed=states.filter(s=>s.result).length;
-    const active=states.find(s=>!s.done&&s.message);
-    $('status').textContent=finished<states.length
-      ? (active ? `${active.message} • ${finished} of ${states.length} complete` : `Processing ${finished} of ${states.length} videos...`)
+  const states = jobResults.map((j, index) => ({
+    index,
+    id: jobIdOf(j),
+    url: statusUrlOf(j),
+    done: false,
+    errors: 0,
+    result: null,
+    error: null,
+    progress: 0,
+    message: ''
+  }));
+
+  let finished = 0;
+  const pollStartedAt = Date.now();
+  const MAX_PROCESSING_WAIT_MS = 35 * 60 * 1000;
+
+  $('results').style.display = 'block';
+  $('clipGrid').innerHTML = '';
+  $('summary').dataset.totalClips = '0';
+  $('summary').textContent = `Processing 0 of ${states.length} videos...`;
+
+  const updateUi = () => {
+    const pct = Math.round(
+      states.reduce((sum, state) => sum + state.progress, 0) /
+      Math.max(1, states.length)
+    );
+
+    $('bar').style.width = pct + '%';
+    $('percent').textContent = pct + '%';
+
+    const failed = states.filter(state => state.error);
+    const completed = states.filter(state => state.result).length;
+    const active = states.find(state => !state.done && state.message);
+
+    $('status').textContent = finished < states.length
+      ? (
+          active
+            ? `${active.message} • ${finished} of ${states.length} complete`
+            : `Processing ${finished} of ${states.length} videos...`
+        )
       : failed.length
         ? `${completed} of ${states.length} videos completed.`
         : 'All videos processed.';
-    $('summary').textContent=`${Number($('summary').dataset.totalClips||0)} clips • ${completed} of ${states.length} videos completed`;
+
+    $('summary').textContent =
+      `${Number($('summary').dataset.totalClips || 0)} clips • ` +
+      `${completed} of ${states.length} videos completed`;
   };
 
-  const ids=states.map(s=>s.id).filter(Boolean);
-  const batchEndpoint=ids.length
-    ? `${API}/api/batch-status?jobs=${encodeURIComponent(ids.join(','))}`
-    : '';
+  const ids = states.map(state => state.id).filter(Boolean);
 
-  while(finished<states.length){
-    try{
-      let payload;
-      const r=await fetchWithTimeout(batchEndpoint,{cache:'no-store'},30000);
-      const text=await r.text();let d={};try{d=JSON.parse(text)}catch{}
-      if(!r.ok)throw Error(d.detail||text||`Batch status request failed (${r.status})`);
-      payload=d.jobs||[];
+  if (!ids.length) {
+    setBusy(false);
+    showError('No processing job IDs were returned. Please retry.');
+    return;
+  }
 
-      const byId=new Map(payload.map(j=>[j.job_id,j]));
-      for(const s of states){
-        if(s.done)continue;
-        const d=byId.get(s.id);
-        if(!d)continue;
-        s.errors=0;
-        s.progress=Math.max(0,Math.min(100,Number(d.progress)||0));
-        s.message=d.message||'';
-        if(d.status==='complete'){
-          s.done=true;s.progress=100;s.result=d.result;finished++;
-          render(d.result);
-        }else if(d.status==='error'){
-          s.done=true;s.error=d.message||'Processing failed.';finished++;
+  const batchEndpoint =
+    `${API}/api/batch-status?jobs=${encodeURIComponent(ids.join(','))}`;
+
+  while (finished < states.length) {
+    // Never spin forever if the processor fails to send a final state.
+    if (Date.now() - pollStartedAt >= MAX_PROCESSING_WAIT_MS) {
+      for (const state of states) {
+        if (!state.done) {
+          state.done = true;
+          state.progress = 0;
+          state.error =
+            'No final processing result was received within 35 minutes. ' +
+            'Check the GitHub Actions run before retrying.';
+          finished++;
         }
       }
-    }catch(e){
-      for(const s of states.filter(x=>!x.done))s.errors++;
-      const maxErrors=Math.max(60,Math.ceil(6000/1000));
-      if(states.some(s=>s.errors>=maxErrors)){
-        states.filter(s=>!s.done&&s.errors>=maxErrors).forEach(s=>{s.done=true;s.error='Processing status was unavailable for too long.';finished++});
+      updateUi();
+      break;
+    }
+
+    try {
+      const response = await fetchWithTimeout(
+        batchEndpoint,
+        { cache: 'no-store' },
+        30000
+      );
+
+      const responseText = await response.text();
+      let payload = {};
+
+      try {
+        payload = JSON.parse(responseText);
+      } catch {
+        // Non-JSON error responses are reported below when HTTP is not OK.
+      }
+
+      if (!response.ok) {
+        throw Error(
+          payload.detail ||
+          payload.message ||
+          responseText ||
+          `Batch status request failed (${response.status})`
+        );
+      }
+
+      const returnedJobs = Array.isArray(payload.jobs) ? payload.jobs : [];
+      const byId = new Map(returnedJobs.map(job => [job.job_id, job]));
+
+      for (const state of states) {
+        if (state.done) continue;
+
+        const job = byId.get(state.id);
+
+        if (!job) {
+          state.errors++;
+
+          // A successful HTTP response that omits this ID won't resolve by
+          // itself. Report that condition rather than leaving the UI stuck.
+          if (state.errors >= 15) {
+            state.done = true;
+            state.progress = 0;
+            state.error =
+              'The status service did not return this processing job. ' +
+              'Check GitHub Actions and retry if the run failed.';
+            finished++;
+          }
+          continue;
+        }
+
+        state.errors = 0;
+        state.message = job.message || '';
+
+        const reportedProgress = Math.max(
+          0,
+          Math.min(100, Number(job.progress) || 0)
+        );
+
+        // Processing can report high progress during output upload. Reserve
+        // 100% for a real complete response only.
+        state.progress = job.status === 'complete'
+          ? 100
+          : job.status === 'error'
+            ? 0
+            : Math.min(99, reportedProgress);
+
+        if (job.status === 'complete') {
+          // The processor's callback can return clips directly on the job,
+          // while older API responses wrap them in job.result.clips.
+          const result = (
+            job.result &&
+            Array.isArray(job.result.clips)
+          )
+            ? job.result
+            : Array.isArray(job.clips)
+              ? {
+                  success: true,
+                  job_id: job.job_id || state.id,
+                  source_name: job.source_name || job.filename || '',
+                  clip_count: job.clips.length,
+                  clips: job.clips
+                }
+              : null;
+
+          // Do not treat a completed status without actual clips as success.
+          if (!result || result.clips.length === 0) {
+            state.done = true;
+            state.progress = 0;
+            state.error =
+              'The processor reported completion but returned no clips. ' +
+              'Check the GitHub Actions logs.';
+            finished++;
+            continue;
+          }
+
+          state.done = true;
+          state.progress = 100;
+          state.result = result;
+          finished++;
+          render(result);
+
+        } else if (job.status === 'error') {
+          state.done = true;
+          state.progress = 0;
+          state.error = job.message || 'Video processing failed.';
+          finished++;
+        }
+      }
+
+    } catch (error) {
+      for (const state of states) {
+        if (!state.done) state.errors++;
+      }
+
+      // A brief network outage is retried. After about one minute, show a
+      // useful error instead of waiting for the global 35-minute limit.
+      for (const state of states) {
+        if (!state.done && state.errors >= 60) {
+          state.done = true;
+          state.progress = 0;
+          state.error =
+            'Processing status was unavailable for too long. ' +
+            'Check GitHub Actions before retrying.';
+          finished++;
+        }
       }
     }
+
     updateUi();
-    if(finished<states.length)await new Promise(r=>setTimeout(r,1000));
+
+    if (finished < states.length) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
   }
 
   setBusy(false);
-  const completed=states.filter(s=>s.result).map(s=>s.result);
-  const failed=states.filter(s=>s.error);
-  if(!failed.length){
-    $('bar').style.width='100%';$('percent').textContent='100%';
+
+  const completed = states
+    .filter(state => state.result)
+    .map(state => state.result);
+
+  const failed = states.filter(state => state.error);
+
+  if (failed.length === 0 && completed.length === states.length) {
+    $('bar').style.width = '100%';
+    $('percent').textContent = '100%';
     showSuccess(`Done. All ${states.length} videos were processed.`);
-  }else{
-    showError(`${completed.length} of ${states.length} videos completed. ${failed.map(s=>`Video ${s.index+1}: ${s.error}`).join(' • ')}`);
+  } else {
+    showError(
+      `${completed.length} of ${states.length} videos completed. ` +
+      failed.map(state =>
+        `Video ${state.index + 1}: ${state.error}`
+      ).join(' • ')
+    );
   }
-  $('results').scrollIntoView({behavior:'smooth',block:'start'});
+
+  $('results').scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  });
 }
 
 async function create(){
